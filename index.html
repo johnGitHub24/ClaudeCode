@@ -1,0 +1,3740 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Claude Code 快速學習指南</title>
+  <style>
+    :root {
+      --primary: #6c47ff;
+      --primary-dark: #4f2fe0;
+      --accent: #ff6b35;
+      --bg: #0d0d1a;
+      --bg2: #13132a;
+      --bg3: #1a1a35;
+      --card: #1e1e3a;
+      --border: #2e2e55;
+      --text: #e8e8f0;
+      --text-muted: #8888aa;
+      --code-bg: #0a0a18;
+      --green: #00d4aa;
+      --yellow: #ffd700;
+      --red: #ff4757;
+      --blue: #4fc3f7;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: rgba(13,13,26,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 2rem; height: 60px;
+    }
+    .nav-logo {
+      font-size: 1.1rem; font-weight: 700;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .nav-links { display: flex; gap: 0.2rem; list-style: none; align-items: center; }
+    .nav-links > li { position: relative; }
+    .nav-links > li > a, .nav-links > li > span {
+      color: var(--text-muted); text-decoration: none;
+      font-size: 0.85rem; transition: color 0.2s;
+      padding: 0.4rem 0.7rem; border-radius: 6px; display: block; cursor: pointer;
+      white-space: nowrap;
+    }
+    .nav-links > li > a:hover,
+    .nav-links > li > span:hover { color: var(--text); background: rgba(108,71,255,0.1); }
+    .nav-links > li > a.active { color: var(--text); }
+    /* dropdown */
+    .nav-dropdown { position: relative; }
+    .nav-dropdown-menu {
+      display: none; position: absolute; top: calc(100% + 6px); left: 0;
+      background: rgba(20,20,40,0.98); border: 1px solid var(--border);
+      border-radius: 10px; padding: 0.4rem; min-width: 180px; z-index: 200;
+      backdrop-filter: blur(16px);
+    }
+    .nav-dropdown:hover .nav-dropdown-menu { display: block; }
+    .nav-dropdown-menu a {
+      display: block; padding: 0.45rem 0.8rem;
+      color: var(--text-muted); text-decoration: none;
+      font-size: 0.83rem; border-radius: 6px; transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .nav-dropdown-menu a:hover { background: rgba(108,71,255,0.15); color: var(--text); }
+    .nav-badge {
+      background: var(--primary); color: #fff;
+      padding: 0.3rem 0.9rem; border-radius: 20px;
+      font-size: 0.8rem; font-weight: 600; text-decoration: none;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      text-align: center; padding: 6rem 2rem 4rem;
+      background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(108,71,255,0.15) 0%, transparent 70%);
+    }
+    .hero-inner { max-width: 800px; }
+    .hero-badge {
+      display: inline-block;
+      background: rgba(108,71,255,0.15);
+      border: 1px solid rgba(108,71,255,0.4);
+      color: #a78bff; padding: 0.35rem 1rem;
+      border-radius: 20px; font-size: 0.82rem;
+      margin-bottom: 1.5rem; letter-spacing: 0.5px;
+    }
+    .hero h1 {
+      font-size: clamp(2.2rem, 5vw, 3.8rem);
+      font-weight: 800; line-height: 1.2;
+      margin-bottom: 1.2rem;
+    }
+    .gradient-text {
+      background: linear-gradient(135deg, #a78bff, var(--accent), #ff6b9d);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .hero p {
+      font-size: 1.1rem; color: var(--text-muted);
+      max-width: 560px; margin: 0 auto 2.5rem;
+    }
+    .hero-btns { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: #fff; padding: 0.8rem 2rem; border-radius: 10px;
+      text-decoration: none; font-weight: 600; font-size: 0.95rem;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 4px 20px rgba(108,71,255,0.4);
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 28px rgba(108,71,255,0.5); }
+    .btn-outline {
+      border: 1px solid var(--border); color: var(--text);
+      padding: 0.8rem 2rem; border-radius: 10px;
+      text-decoration: none; font-weight: 600; font-size: 0.95rem;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .btn-outline:hover { border-color: var(--primary); background: rgba(108,71,255,0.08); }
+
+    /* stats bar */
+    .stats-bar {
+      display: flex; justify-content: center; gap: 3rem;
+      margin-top: 4rem; padding-top: 2rem;
+      border-top: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+    .stat { text-align: center; }
+    .stat-num { font-size: 1.8rem; font-weight: 800; color: var(--primary); }
+    .stat-label { font-size: 0.82rem; color: var(--text-muted); }
+
+    /* ── SECTIONS ── */
+    section { padding: 5rem 2rem; }
+    .container { max-width: 1100px; margin: 0 auto; }
+    .section-tag {
+      display: inline-block;
+      background: rgba(108,71,255,0.12);
+      color: #a78bff; padding: 0.25rem 0.8rem;
+      border-radius: 6px; font-size: 0.78rem;
+      font-weight: 600; letter-spacing: 1px;
+      text-transform: uppercase; margin-bottom: 0.8rem;
+    }
+    .section-title {
+      font-size: clamp(1.6rem, 3vw, 2.2rem);
+      font-weight: 700; margin-bottom: 0.8rem;
+    }
+    .section-sub {
+      color: var(--text-muted); font-size: 1rem;
+      max-width: 560px; margin-bottom: 3rem;
+    }
+
+    /* ── INSTALL ── */
+    #install { background: var(--bg2); }
+    .install-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+    .install-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 1.5rem;
+    }
+    .install-card h3 {
+      font-size: 0.95rem; font-weight: 600;
+      margin-bottom: 0.8rem; display: flex; align-items: center; gap: 0.5rem;
+    }
+    .os-icon { font-size: 1.1rem; }
+
+    /* ── CODE BLOCK ── */
+    .code-block {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px; padding: 1.2rem 1.5rem;
+      font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+      font-size: 0.88rem; overflow-x: auto;
+      position: relative; margin: 0.8rem 0;
+    }
+    .code-block .comment { color: #555577; }
+    .code-block .cmd { color: var(--green); }
+    .code-block .flag { color: var(--blue); }
+    .code-block .str { color: var(--yellow); }
+    .code-block .prompt { color: var(--text-muted); user-select: none; }
+    .copy-btn {
+      position: absolute; top: 0.7rem; right: 0.7rem;
+      background: var(--border); border: none; color: var(--text-muted);
+      padding: 0.25rem 0.6rem; border-radius: 6px;
+      font-size: 0.75rem; cursor: pointer; transition: background 0.2s;
+    }
+    .copy-btn:hover { background: var(--primary); color: #fff; }
+
+    /* ── COMMANDS ── */
+    #commands { background: var(--bg); }
+    .cmd-table {
+      width: 100%; border-collapse: collapse;
+      background: var(--card); border-radius: 14px; overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .cmd-table th {
+      background: var(--bg3); padding: 0.9rem 1.2rem;
+      text-align: left; font-size: 0.82rem;
+      text-transform: uppercase; letter-spacing: 0.8px;
+      color: var(--text-muted);
+    }
+    .cmd-table td {
+      padding: 0.85rem 1.2rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.9rem;
+    }
+    .cmd-table tr:hover td { background: rgba(108,71,255,0.05); }
+    .tag {
+      display: inline-block; padding: 0.15rem 0.55rem;
+      border-radius: 5px; font-size: 0.75rem; font-weight: 600;
+    }
+    .tag-green { background: rgba(0,212,170,0.15); color: var(--green); }
+    .tag-blue  { background: rgba(79,195,247,0.15); color: var(--blue); }
+    .tag-yellow{ background: rgba(255,215,0,0.15); color: var(--yellow); }
+    .tag-red   { background: rgba(255,71,87,0.15); color: var(--red); }
+    code {
+      font-family: 'Cascadia Code','Fira Code','Consolas',monospace;
+      background: rgba(108,71,255,0.15); color: #a78bff;
+      padding: 0.1rem 0.4rem; border-radius: 4px; font-size: 0.88em;
+    }
+
+    /* ── MODULES ── */
+    #modules { background: var(--bg2); }
+    .modules-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+    }
+    .module-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 16px; padding: 1.8rem;
+      transition: transform 0.2s, border-color 0.2s;
+      cursor: pointer;
+    }
+    .module-card:hover { transform: translateY(-4px); border-color: var(--primary); }
+    .module-icon {
+      width: 48px; height: 48px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem; margin-bottom: 1rem;
+    }
+    .module-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .module-card p { color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1rem; }
+    .module-meta {
+      display: flex; gap: 0.8rem;
+      font-size: 0.78rem; color: var(--text-muted);
+    }
+
+    /* ── TIPS ── */
+    #tips { background: var(--bg); }
+    .tips-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.2rem;
+    }
+    .tip-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 1.4rem;
+      display: flex; gap: 1rem; align-items: flex-start;
+    }
+    .tip-num {
+      min-width: 32px; height: 32px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.82rem; font-weight: 700;
+    }
+    .tip-content h4 { font-size: 0.95rem; margin-bottom: 0.4rem; }
+    .tip-content p { font-size: 0.85rem; color: var(--text-muted); }
+
+    /* ── CHEATSHEET ── */
+    #cheatsheet { background: var(--bg2); }
+    .cheat-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+    .cheat-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 1.5rem;
+    }
+    .cheat-card h3 {
+      font-size: 0.88rem; text-transform: uppercase;
+      letter-spacing: 1px; color: var(--text-muted);
+      margin-bottom: 1rem; padding-bottom: 0.6rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .cheat-row {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      padding: 0.4rem 0; gap: 1rem;
+    }
+    .cheat-row:not(:last-child) { border-bottom: 1px solid rgba(46,46,85,0.5); }
+    .cheat-desc { font-size: 0.83rem; color: var(--text-muted); flex: 1; }
+    .cheat-key { font-size: 0.82rem; white-space: nowrap; }
+
+    /* ── HOOKS ── */
+    #hooks { background: var(--bg); }
+    .hooks-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 1.5rem;
+    }
+    .hook-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 14px; overflow: hidden;
+    }
+    .hook-header {
+      padding: 1rem 1.5rem;
+      background: var(--bg3);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 0.6rem;
+    }
+    .hook-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .hook-header h3 { font-size: 0.92rem; font-weight: 600; }
+    .hook-body { padding: 1.2rem 1.5rem; }
+    .hook-body p { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem; }
+
+    /* ── WORKFLOW ── */
+    #workflow { background: var(--bg2); }
+    .flow-steps {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 0; position: relative;
+    }
+    .flow-step {
+      padding: 1.5rem;
+      background: var(--card); border: 1px solid var(--border);
+      text-align: center; position: relative;
+    }
+    .flow-step:not(:last-child)::after {
+      content: '→'; position: absolute; right: -12px; top: 50%;
+      transform: translateY(-50%);
+      color: var(--primary); font-size: 1.2rem; z-index: 1;
+    }
+    .flow-step:first-child { border-radius: 12px 0 0 12px; }
+    .flow-step:last-child  { border-radius: 0 12px 12px 0; }
+    .flow-num {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 0.9rem; margin: 0 auto 0.8rem;
+    }
+    .flow-step h3 { font-size: 0.95rem; margin-bottom: 0.4rem; }
+    .flow-step p { font-size: 0.82rem; color: var(--text-muted); }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--bg2); border-top: 1px solid var(--border);
+      padding: 3rem 2rem; text-align: center;
+    }
+    footer p { color: var(--text-muted); font-size: 0.88rem; }
+    footer a { color: var(--primary); text-decoration: none; }
+
+    /* ── MOBILE ── */
+    @media (max-width: 700px) {
+      .nav-links { display: none; }
+      .flow-steps { grid-template-columns: 1fr; }
+      .flow-step { border-radius: 10px !important; }
+      .flow-step::after { display: none; }
+    }
+
+    /* ── PROGRESS BAR ── */
+    .progress-bar {
+      position: fixed; top: 60px; left: 0; right: 0;
+      height: 2px; background: var(--border); z-index: 99;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      width: 0%; transition: width 0.1s;
+    }
+
+    /* ── ALERT BOX ── */
+    .alert {
+      border-radius: 10px; padding: 1rem 1.2rem;
+      margin: 1rem 0; display: flex; gap: 0.8rem;
+      font-size: 0.88rem;
+    }
+    .alert-info { background: rgba(79,195,247,0.1); border: 1px solid rgba(79,195,247,0.3); }
+    .alert-warn { background: rgba(255,215,0,0.08); border: 1px solid rgba(255,215,0,0.3); }
+    .alert-tip  { background: rgba(0,212,170,0.08); border: 1px solid rgba(0,212,170,0.3); }
+    .alert-icon { font-size: 1rem; margin-top: 0.1rem; }
+
+    /* scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+<!-- PROGRESS -->
+<div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+
+<!-- NAV -->
+<nav>
+  <span class="nav-logo">⚡ Claude Code Learn</span>
+  <ul class="nav-links">
+    <li><a href="#install">安裝</a></li>
+    <li><a href="#commands">指令</a></li>
+    <li class="nav-dropdown">
+      <span>基礎課程 ▾</span>
+      <div class="nav-dropdown-menu">
+        <a href="#modules">課程總覽</a>
+        <a href="#mod1">M1 快速入門</a>
+        <a href="#mod2">M2 檔案操作</a>
+        <a href="#mod3">M3 Debug 工作流</a>
+        <a href="#mod4">M4 CLAUDE.md</a>
+        <a href="#hooks">M5 Hooks 自動化</a>
+      </div>
+    </li>
+    <li class="nav-dropdown">
+      <span>開發實戰 ▾</span>
+      <div class="nav-dropdown-menu">
+        <a href="#dev-program">程式開發流程</a>
+        <a href="#frontend">前端開發</a>
+        <a href="#backend">後端/API 開發</a>
+        <a href="#refactoring">重構策略</a>
+        <a href="#testing">測試撰寫</a>
+        <a href="#prompt-tips">Prompt 技巧</a>
+      </div>
+    </li>
+    <li class="nav-dropdown">
+      <span>中階/進階 ▾</span>
+      <div class="nav-dropdown-menu">
+        <a href="#intermediate">中階總覽</a>
+        <a href="#advanced">進階總覽</a>
+        <a href="#advanced">MCP 整合</a>
+        <a href="#advanced">多 Agent</a>
+        <a href="#advanced">CI/CD</a>
+      </div>
+    </li>
+    <li class="nav-dropdown">
+      <span>實戰進階 ▾</span>
+      <div class="nav-dropdown-menu">
+        <a href="#cowork">Cowork 遠端控制</a>
+        <a href="#subagents">自訂 Subagents</a>
+        <a href="#pro-tips15">15 大技巧</a>
+      </div>
+    </li>
+    <li><a href="#cheatsheet">速查表</a></li>
+    <li><a href="#resources">資源</a></li>
+  </ul>
+  <a href="https://docs.anthropic.com/claude/docs/claude-code" target="_blank" class="nav-badge">官方文件</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-badge">🚀 2026 最新版 · 快速上手</div>
+    <h1>
+      掌握 <span class="gradient-text">Claude Code</span><br/>
+      成為 AI 輔助開發高手
+    </h1>
+    <p>從零開始學習 Anthropic 官方 CLI 工具，讓 AI 真正融入你的開發工作流程，大幅提升生產力。</p>
+    <div class="hero-btns">
+      <a href="#install" class="btn-primary">立即開始學習</a>
+      <a href="#cheatsheet" class="btn-outline">查看速查表</a>
+    </div>
+    <div class="stats-bar">
+      <div class="stat">
+        <div class="stat-num">5 min</div>
+        <div class="stat-label">安裝完成時間</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">8 大</div>
+        <div class="stat-label">核心功能模組</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">50+</div>
+        <div class="stat-label">實用指令範例</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">3x</div>
+        <div class="stat-label">開發效率提升</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- INSTALL -->
+<section id="install">
+  <div class="container">
+    <div class="section-tag">Step 1</div>
+    <h2 class="section-title">安裝 Claude Code</h2>
+    <p class="section-sub">支援 Windows、macOS、Linux，需要 Node.js 18+ 環境。</p>
+
+    <div class="install-grid">
+      <div class="install-card">
+        <h3><span class="os-icon">🪟</span> Windows</h3>
+        <div class="code-block">
+          <button class="copy-btn" onclick="copyCode(this)">複製</button>
+          <span class="comment"># 方法一：npm 安裝（推薦）</span><br/>
+          <span class="prompt">$ </span><span class="cmd">npm install</span> <span class="flag">-g</span> @anthropic-ai/claude-code<br/><br/>
+          <span class="comment"># 方法二：WSL 環境</span><br/>
+          <span class="prompt">$ </span><span class="cmd">wsl</span> <span class="flag">--install</span><br/>
+          <span class="prompt">$ </span><span class="cmd">npm install</span> <span class="flag">-g</span> @anthropic-ai/claude-code
+        </div>
+        <div class="alert alert-warn">
+          <span class="alert-icon">⚠️</span>
+          Windows 建議使用 WSL2 以獲得最佳體驗
+        </div>
+      </div>
+
+      <div class="install-card">
+        <h3><span class="os-icon">🍎</span> macOS</h3>
+        <div class="code-block">
+          <button class="copy-btn" onclick="copyCode(this)">複製</button>
+          <span class="comment"># 先確認 Node.js 版本</span><br/>
+          <span class="prompt">$ </span><span class="cmd">node</span> <span class="flag">-v</span>  <span class="comment"># 需要 v18+</span><br/><br/>
+          <span class="comment"># 安裝 Claude Code</span><br/>
+          <span class="prompt">$ </span><span class="cmd">npm install</span> <span class="flag">-g</span> @anthropic-ai/claude-code<br/><br/>
+          <span class="comment"># 驗證安裝</span><br/>
+          <span class="prompt">$ </span><span class="cmd">claude</span> <span class="flag">--version</span>
+        </div>
+      </div>
+
+      <div class="install-card">
+        <h3><span class="os-icon">🐧</span> Linux</h3>
+        <div class="code-block">
+          <button class="copy-btn" onclick="copyCode(this)">複製</button>
+          <span class="comment"># Ubuntu/Debian</span><br/>
+          <span class="prompt">$ </span><span class="cmd">curl</span> <span class="flag">-fsSL</span> https://deb.nodesource.com/setup_20.x | <span class="cmd">sudo bash</span> <span class="flag">-</span><br/>
+          <span class="prompt">$ </span><span class="cmd">sudo apt-get install</span> <span class="flag">-y</span> nodejs<br/>
+          <span class="prompt">$ </span><span class="cmd">npm install</span> <span class="flag">-g</span> @anthropic-ai/claude-code
+        </div>
+      </div>
+
+      <div class="install-card">
+        <h3><span class="os-icon">🔑</span> 設定 API Key</h3>
+        <div class="code-block">
+          <button class="copy-btn" onclick="copyCode(this)">複製</button>
+          <span class="comment"># 首次執行會引導登入</span><br/>
+          <span class="prompt">$ </span><span class="cmd">claude</span><br/><br/>
+          <span class="comment"># 或手動設定環境變數</span><br/>
+          <span class="prompt">$ </span><span class="cmd">export</span> ANTHROPIC_API_KEY=<span class="str">"sk-ant-..."</span><br/><br/>
+          <span class="comment"># Windows PowerShell</span><br/>
+          <span class="prompt">> </span>$env:ANTHROPIC_API_KEY=<span class="str">"sk-ant-..."</span>
+        </div>
+        <div class="alert alert-info">
+          <span class="alert-icon">ℹ️</span>
+          前往 <strong>console.anthropic.com</strong> 取得 API Key
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COMMANDS -->
+<section id="commands">
+  <div class="container">
+    <div class="section-tag">Step 2</div>
+    <h2 class="section-title">核心指令大全</h2>
+    <p class="section-sub">掌握這些指令，即可應付 90% 的日常開發需求。</p>
+
+    <table class="cmd-table">
+      <thead>
+        <tr>
+          <th>指令</th>
+          <th>說明</th>
+          <th>範例</th>
+          <th>類型</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>claude</code></td>
+          <td>啟動互動式 REPL 對話</td>
+          <td><code>claude</code></td>
+          <td><span class="tag tag-green">基礎</span></td>
+        </tr>
+        <tr>
+          <td><code>claude "..."</code></td>
+          <td>單次執行任務後退出</td>
+          <td><code>claude "修復這個 bug"</code></td>
+          <td><span class="tag tag-green">基礎</span></td>
+        </tr>
+        <tr>
+          <td><code>claude -p "..."</code></td>
+          <td>非互動模式輸出（管道用）</td>
+          <td><code>cat file.py | claude -p "解釋這段程式"</code></td>
+          <td><span class="tag tag-blue">進階</span></td>
+        </tr>
+        <tr>
+          <td><code>claude --continue</code></td>
+          <td>繼續最近一次對話</td>
+          <td><code>claude --continue</code></td>
+          <td><span class="tag tag-green">基礎</span></td>
+        </tr>
+        <tr>
+          <td><code>claude --resume</code></td>
+          <td>選擇歷史對話繼續</td>
+          <td><code>claude --resume</code></td>
+          <td><span class="tag tag-blue">進階</span></td>
+        </tr>
+        <tr>
+          <td><code>/help</code></td>
+          <td>顯示所有可用指令</td>
+          <td>在 REPL 內輸入 <code>/help</code></td>
+          <td><span class="tag tag-green">基礎</span></td>
+        </tr>
+        <tr>
+          <td><code>/clear</code></td>
+          <td>清除對話記憶</td>
+          <td>在 REPL 內輸入 <code>/clear</code></td>
+          <td><span class="tag tag-green">基礎</span></td>
+        </tr>
+        <tr>
+          <td><code>/compact</code></td>
+          <td>壓縮對話上下文以節省 token</td>
+          <td>長對話後使用 <code>/compact</code></td>
+          <td><span class="tag tag-yellow">最佳化</span></td>
+        </tr>
+        <tr>
+          <td><code>/model</code></td>
+          <td>切換 AI 模型</td>
+          <td><code>/model claude-opus-4-7</code></td>
+          <td><span class="tag tag-blue">進階</span></td>
+        </tr>
+        <tr>
+          <td><code>/add-dir</code></td>
+          <td>加入額外工作目錄</td>
+          <td><code>/add-dir ../shared-lib</code></td>
+          <td><span class="tag tag-blue">進階</span></td>
+        </tr>
+        <tr>
+          <td><code>/init</code></td>
+          <td>產生 CLAUDE.md 專案說明</td>
+          <td><code>/init</code></td>
+          <td><span class="tag tag-yellow">最佳化</span></td>
+        </tr>
+        <tr>
+          <td><code>/config</code></td>
+          <td>開啟設定選單</td>
+          <td><code>/config</code></td>
+          <td><span class="tag tag-green">基礎</span></td>
+        </tr>
+        <tr>
+          <td><code>/mcp</code></td>
+          <td>管理 MCP 伺服器</td>
+          <td><code>/mcp</code></td>
+          <td><span class="tag tag-red">MCP</span></td>
+        </tr>
+        <tr>
+          <td><code>! 指令</code></td>
+          <td>直接在 REPL 執行 shell 指令</td>
+          <td><code>! git status</code></td>
+          <td><span class="tag tag-blue">進階</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- MODULES -->
+<section id="modules">
+  <div class="container">
+    <div class="section-tag">Step 3</div>
+    <h2 class="section-title">學習模組</h2>
+    <p class="section-sub">按照順序學習，從基礎到進階，循序漸進掌握 Claude Code 全貌。</p>
+
+    <div class="modules-grid">
+      <a class="module-card" href="#mod1" style="text-decoration:none;color:inherit">
+        <div class="module-icon" style="background:rgba(108,71,255,0.2)">🚀</div>
+        <h3>模組 1：快速入門</h3>
+        <p>安裝環境、第一次對話、了解基本互動模式與工作目錄概念。</p>
+        <div class="module-meta">
+          <span>⏱ 15 分鐘</span><span>🟢 入門</span>
+          <span style="margin-left:auto;color:var(--primary);font-size:0.8rem">前往 →</span>
+        </div>
+      </a>
+
+      <a class="module-card" href="#mod2" style="text-decoration:none;color:inherit">
+        <div class="module-icon" style="background:rgba(0,212,170,0.2)">📁</div>
+        <h3>模組 2：檔案操作</h3>
+        <p>讓 Claude 讀取、編輯、建立檔案，理解 Read / Edit / Write 工具的差異。</p>
+        <div class="module-meta">
+          <span>⏱ 20 分鐘</span><span>🟢 入門</span>
+          <span style="margin-left:auto;color:var(--primary);font-size:0.8rem">前往 →</span>
+        </div>
+      </a>
+
+      <a class="module-card" href="#mod3" style="text-decoration:none;color:inherit">
+        <div class="module-icon" style="background:rgba(255,107,53,0.2)">🐛</div>
+        <h3>模組 3：Debug 工作流</h3>
+        <p>使用 Claude 找 bug、理解錯誤訊息、撰寫 fix，建立高效除錯習慣。</p>
+        <div class="module-meta">
+          <span>⏱ 25 分鐘</span><span>🟡 中級</span>
+          <span style="margin-left:auto;color:var(--primary);font-size:0.8rem">前往 →</span>
+        </div>
+      </a>
+
+      <a class="module-card" href="#mod4" style="text-decoration:none;color:inherit">
+        <div class="module-icon" style="background:rgba(79,195,247,0.2)">🔧</div>
+        <h3>模組 4：CLAUDE.md 設定</h3>
+        <p>建立專案記憶檔，讓 Claude 了解你的專案規範、技術棧與禁止行為。</p>
+        <div class="module-meta">
+          <span>⏱ 20 分鐘</span><span>🟡 中級</span>
+          <span style="margin-left:auto;color:var(--primary);font-size:0.8rem">前往 →</span>
+        </div>
+      </a>
+
+      <a class="module-card" href="#hooks" style="text-decoration:none;color:inherit">
+        <div class="module-icon" style="background:rgba(255,215,0,0.2)">🪝</div>
+        <h3>模組 5：Hooks 自動化</h3>
+        <p>設定 PreToolUse / PostToolUse hooks，在 Claude 操作前後自動執行腳本。</p>
+        <div class="module-meta">
+          <span>⏱ 30 分鐘</span><span>🔴 進階</span>
+          <span style="margin-left:auto;color:var(--primary);font-size:0.8rem">前往 →</span>
+        </div>
+      </a>
+
+      <a class="module-card" href="#advanced" style="text-decoration:none;color:inherit">
+        <div class="module-icon" style="background:rgba(255,71,87,0.2)">🔌</div>
+        <h3>模組 6：MCP 整合</h3>
+        <p>連接外部工具：GitHub、資料庫、Slack，擴展 Claude 的能力邊界。</p>
+        <div class="module-meta">
+          <span>⏱ 40 分鐘</span><span>🔴 進階</span>
+          <span style="margin-left:auto;color:var(--primary);font-size:0.8rem">前往 →</span>
+        </div>
+      </a>
+
+      <a class="module-card" href="#advanced" style="text-decoration:none;color:inherit">
+        <div class="module-icon" style="background:rgba(108,71,255,0.2)">🤖</div>
+        <h3>模組 7：多 Agent 協作</h3>
+        <p>使用 Agent SDK 建立子代理系統，平行處理複雜任務。</p>
+        <div class="module-meta">
+          <span>⏱ 45 分鐘</span><span>🔴 進階</span>
+          <span style="margin-left:auto;color:var(--primary);font-size:0.8rem">前往 →</span>
+        </div>
+      </a>
+
+      <a class="module-card" href="#advanced" style="text-decoration:none;color:inherit">
+        <div class="module-icon" style="background:rgba(0,212,170,0.2)">📊</div>
+        <h3>模組 8：CI/CD 整合</h3>
+        <p>在 GitHub Actions、GitLab CI 中使用 claude -p 自動化程式碼審查與部署。</p>
+        <div class="module-meta">
+          <span>⏱ 35 分鐘</span><span>🔴 進階</span>
+          <span style="margin-left:auto;color:var(--primary);font-size:0.8rem">前往 →</span>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- WORKFLOW -->
+<section id="workflow">
+  <div class="container">
+    <div class="section-tag">最佳實踐</div>
+    <h2 class="section-title">推薦工作流程</h2>
+    <p class="section-sub">依照這個流程使用 Claude Code，可以最大化效率並降低出錯率。</p>
+
+    <div class="flow-steps">
+      <div class="flow-step">
+        <div class="flow-num">1</div>
+        <h3>初始化專案</h3>
+        <p>執行 <code>/init</code> 建立 CLAUDE.md，告訴 Claude 專案背景</p>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">2</div>
+        <h3>描述任務</h3>
+        <p>用自然語言清楚說明需求，附上相關程式碼或錯誤訊息</p>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">3</div>
+        <h3>審閱計畫</h3>
+        <p>先讓 Claude 說明執行計畫，確認後再授權執行工具</p>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">4</div>
+        <h3>驗證結果</h3>
+        <p>執行測試、查看 diff，確認修改符合預期</p>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">5</div>
+        <h3>提交版本</h3>
+        <p>讓 Claude 協助撰寫 commit message 並提交</p>
+      </div>
+    </div>
+
+    <div style="margin-top:2rem">
+      <div class="alert alert-tip">
+        <span class="alert-icon">💡</span>
+        <div>
+          <strong>Shift+Tab</strong> 可切換 Auto-accept 模式，讓 Claude 自動執行工具而不需每次確認，適合信任度高的任務。
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TIPS -->
+<section id="tips">
+  <div class="container">
+    <div class="section-tag">進階技巧</div>
+    <h2 class="section-title">10 個提升效率的技巧</h2>
+    <p class="section-sub">這些技巧能讓你的 Claude Code 使用體驗提升到另一個層次。</p>
+
+    <div class="tips-grid">
+      <div class="tip-card">
+        <div class="tip-num">1</div>
+        <div class="tip-content">
+          <h4>使用 CLAUDE.md 記錄規範</h4>
+          <p>在專案根目錄建立 CLAUDE.md，記錄編碼規範、禁止行為、常用指令，每次對話都會自動載入。</p>
+        </div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-num">2</div>
+        <div class="tip-content">
+          <h4>管道串接提升自動化</h4>
+          <p>用 <code>cat error.log | claude -p "分析錯誤原因"</code> 將其他工具輸出直接傳給 Claude 分析。</p>
+        </div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-num">3</div>
+        <div class="tip-content">
+          <h4>善用 /compact 節省 token</h4>
+          <p>長對話後執行 <code>/compact</code>，Claude 會自動摘要對話並保留重要上下文，延長可用 token。</p>
+        </div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-num">4</div>
+        <div class="tip-content">
+          <h4>先規劃後執行</h4>
+          <p>複雜任務先問「你打算怎麼做？」，確認計畫無誤再說「好，請執行」，避免走錯方向。</p>
+        </div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-num">5</div>
+        <div class="tip-content">
+          <h4>使用 ! 執行 shell 指令</h4>
+          <p>在 REPL 中輸入 <code>! git log --oneline -5</code> 可直接執行 shell 指令，結果會顯示在對話中供 Claude 參考。</p>
+        </div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-num">6</div>
+        <div class="tip-content">
+          <h4>設定 .claudeignore</h4>
+          <p>排除 node_modules、大型資料檔、敏感設定，讓 Claude 聚焦在真正重要的程式碼上。</p>
+        </div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-num">7</div>
+        <div class="tip-content">
+          <h4>Hooks 自動執行 Lint</h4>
+          <p>設定 PostToolUse hook，每次 Claude 編輯檔案後自動執行 ESLint 或 Prettier，維持程式碼品質。</p>
+        </div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-num">8</div>
+        <div class="tip-content">
+          <h4>多目錄開發</h4>
+          <p>使用 <code>/add-dir ../backend</code> 加入相關目錄，讓 Claude 在 monorepo 中跨目錄操作。</p>
+        </div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-num">9</div>
+        <div class="tip-content">
+          <h4>Opus 模型處理複雜推理</h4>
+          <p>架構設計、複雜 bug 用 <code>/model claude-opus-4-7</code>；簡單任務用預設 Sonnet 節省費用。</p>
+        </div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-num">10</div>
+        <div class="tip-content">
+          <h4>CI/CD 非互動模式</h4>
+          <p>在 CI 管道中使用 <code>claude -p --allowedTools "Read,Grep" "審查PR"</code> 限制可用工具確保安全。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOOKS -->
+<section id="hooks">
+  <div class="container">
+    <div class="section-tag">自動化</div>
+    <h2 class="section-title">Hooks 設定範例</h2>
+    <p class="section-sub">Hooks 讓你在 Claude 執行工具前後自動觸發自訂腳本。</p>
+
+    <div class="hooks-grid">
+      <div class="hook-card">
+        <div class="hook-header">
+          <div class="hook-dot" style="background:var(--green)"></div>
+          <h3>PostToolUse — 自動執行 Lint</h3>
+        </div>
+        <div class="hook-body">
+          <p>每次 Claude 編輯檔案後自動執行 ESLint 檢查。</p>
+          <div class="code-block">
+            <button class="copy-btn" onclick="copyCode(this)">複製</button>
+<span class="comment">// .claude/settings.json</span><br/>
+{<br/>
+&nbsp;&nbsp;<span class="str">"hooks"</span>: {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"PostToolUse"</span>: [<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"matcher"</span>: <span class="str">"Edit"</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"hooks"</span>: [{<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"type"</span>: <span class="str">"command"</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"command"</span>: <span class="str">"npx eslint {{file}}"</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}]<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;]<br/>
+&nbsp;&nbsp;}<br/>
+}
+          </div>
+        </div>
+      </div>
+
+      <div class="hook-card">
+        <div class="hook-header">
+          <div class="hook-dot" style="background:var(--yellow)"></div>
+          <h3>PreToolUse — 禁止危險操作</h3>
+        </div>
+        <div class="hook-body">
+          <p>在 Claude 執行 Bash 指令前攔截並記錄危險操作。</p>
+          <div class="code-block">
+            <button class="copy-btn" onclick="copyCode(this)">複製</button>
+<span class="comment">// .claude/settings.json</span><br/>
+{<br/>
+&nbsp;&nbsp;<span class="str">"hooks"</span>: {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"PreToolUse"</span>: [<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"matcher"</span>: <span class="str">"Bash"</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"hooks"</span>: [{<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"type"</span>: <span class="str">"command"</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"command"</span>: <span class="str">"./scripts/audit-cmd.sh"</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}]<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;]<br/>
+&nbsp;&nbsp;}<br/>
+}
+          </div>
+        </div>
+      </div>
+
+      <div class="hook-card">
+        <div class="hook-header">
+          <div class="hook-dot" style="background:var(--blue)"></div>
+          <h3>Stop Hook — 完成通知</h3>
+        </div>
+        <div class="hook-body">
+          <p>Claude 完成任務時發送系統通知，適合長時間任務。</p>
+          <div class="code-block">
+            <button class="copy-btn" onclick="copyCode(this)">複製</button>
+<span class="comment">// .claude/settings.json</span><br/>
+{<br/>
+&nbsp;&nbsp;<span class="str">"hooks"</span>: {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"Stop"</span>: [<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"hooks"</span>: [{<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"type"</span>: <span class="str">"command"</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"command"</span>: <span class="str">"notify-send 'Claude 任務完成'"</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}]<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;]<br/>
+&nbsp;&nbsp;}<br/>
+}
+          </div>
+        </div>
+      </div>
+
+      <div class="hook-card">
+        <div class="hook-header">
+          <div class="hook-dot" style="background:var(--accent)"></div>
+          <h3>CLAUDE.md 範本</h3>
+        </div>
+        <div class="hook-body">
+          <p>專案說明檔範例，放置於專案根目錄。</p>
+          <div class="code-block">
+            <button class="copy-btn" onclick="copyCode(this)">複製</button>
+<span class="comment"># CLAUDE.md</span><br/><br/>
+<span class="str">## 專案概述</span><br/>
+這是一個 React + TypeScript 前端專案。<br/><br/>
+<span class="str">## 開發規範</span><br/>
+- 使用 ESLint + Prettier 格式化<br/>
+- 元件使用 PascalCase 命名<br/>
+- 禁止直接修改 package.json<br/><br/>
+<span class="str">## 常用指令</span><br/>
+- 啟動開發: <span class="cmd">npm run dev</span><br/>
+- 執行測試: <span class="cmd">npm test</span><br/>
+- 建置: <span class="cmd">npm run build</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     模組詳細內容 M1–M4
+     ══════════════════════════════════════ -->
+
+<!-- M1: 快速入門 -->
+<section id="mod1" style="background:var(--bg2)">
+  <div class="container">
+    <div class="section-tag">模組 1</div>
+    <h2 class="section-title">快速入門 — 第一次使用 Claude Code</h2>
+    <p class="section-sub">從零開始，5 分鐘內完成安裝並執行第一個任務。</p>
+    <div class="cheat-grid" style="grid-template-columns:repeat(auto-fit,minmax(320px,1fr))">
+      <div class="hook-card">
+        <div class="hook-header"><div class="hook-dot" style="background:var(--green)"></div><h3>第一次啟動流程</h3></div>
+        <div class="hook-body">
+          <p>執行 <code>claude</code> 後，系統會引導你完成 OAuth 登入或 API Key 設定。</p>
+          <div class="code-block">
+            <button class="copy-btn" onclick="copyCode(this)">複製</button>
+<span class="comment"># 1. 啟動（首次會跳出瀏覽器登入）</span><br/>
+<span class="prompt">$ </span><span class="cmd">claude</span><br/><br/>
+<span class="comment"># 2. 進入 REPL 後，試著問第一個問題</span><br/>
+<span class="str">你: </span>你好，說明一下你能幫我做什麼<br/><br/>
+<span class="comment"># 3. 讓 Claude 讀取目前目錄的檔案</span><br/>
+<span class="str">你: </span>看一下目前目錄有哪些檔案，並說明專案結構
+          </div>
+        </div>
+      </div>
+      <div class="hook-card">
+        <div class="hook-header"><div class="hook-dot" style="background:var(--blue)"></div><h3>三種使用模式比較</h3></div>
+        <div class="hook-body">
+          <table style="width:100%;font-size:0.82rem;border-collapse:collapse">
+            <tr style="color:var(--text-muted)"><th style="text-align:left;padding:0.3rem 0">模式</th><th style="text-align:left;padding:0.3rem 0">指令</th><th style="text-align:left;padding:0.3rem 0">適用情境</th></tr>
+            <tr style="border-top:1px solid var(--border)"><td style="padding:0.4rem 0"><strong>互動式</strong></td><td><code>claude</code></td><td style="color:var(--text-muted)">日常開發，多輪對話</td></tr>
+            <tr style="border-top:1px solid var(--border)"><td style="padding:0.4rem 0"><strong>單次執行</strong></td><td><code>claude "任務"</code></td><td style="color:var(--text-muted)">快速一次性任務</td></tr>
+            <tr style="border-top:1px solid var(--border)"><td style="padding:0.4rem 0"><strong>管道模式</strong></td><td><code>claude -p "..."</code></td><td style="color:var(--text-muted)">腳本、CI/CD 整合</td></tr>
+          </table>
+          <div class="alert alert-tip" style="margin-top:0.8rem">
+            <span class="alert-icon">💡</span>新手推薦從<strong>互動式</strong>開始，熟悉後再嘗試管道模式。
+          </div>
+        </div>
+      </div>
+      <div class="hook-card">
+        <div class="hook-header"><div class="hook-dot" style="background:var(--yellow)"></div><h3>常見新手問題</h3></div>
+        <div class="hook-body">
+          <div class="code-block" style="font-size:0.82rem">
+<span class="comment"># Q: Claude 看不到我的程式碼？</span><br/>
+<span class="comment"># A: 確認在正確目錄執行 claude</span><br/>
+<span class="prompt">$ </span><span class="cmd">cd</span> /path/to/your/project<br/>
+<span class="prompt">$ </span><span class="cmd">claude</span><br/><br/>
+<span class="comment"># Q: 如何讓 Claude 只讀特定檔案？</span><br/>
+<span class="str">你: </span>讀取 src/index.ts 並解釋這個檔案<br/><br/>
+<span class="comment"># Q: 如何中斷 Claude 正在執行的操作？</span><br/>
+按 <span class="flag">Esc</span> 鍵可中斷當前回應
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- M2: 檔案操作 -->
+<section id="mod2" style="background:var(--bg)">
+  <div class="container">
+    <div class="section-tag">模組 2</div>
+    <h2 class="section-title">檔案操作 — Read / Edit / Write / Glob / Grep</h2>
+    <p class="section-sub">Claude 使用內建工具操作檔案，了解每個工具的特性能讓你下更精準的指令。</p>
+    <div class="cheat-grid" style="grid-template-columns:repeat(auto-fit,minmax(320px,1fr))">
+      <div class="hook-card">
+        <div class="hook-header"><div class="hook-dot" style="background:var(--green)"></div><h3>工具對照表</h3></div>
+        <div class="hook-body">
+          <table style="width:100%;font-size:0.82rem;border-collapse:collapse">
+            <tr style="color:var(--text-muted)"><th style="text-align:left;padding:0.3rem 0">工具</th><th style="text-align:left;padding:0.3rem 0">用途</th><th style="text-align:left;padding:0.3rem 0">特點</th></tr>
+            <tr style="border-top:1px solid var(--border)"><td style="padding:0.4rem 0"><code>Read</code></td><td style="color:var(--text-muted)">讀取檔案內容</td><td style="color:var(--text-muted)">可指定行範圍</td></tr>
+            <tr style="border-top:1px solid var(--border)"><td style="padding:0.4rem 0"><code>Edit</code></td><td style="color:var(--text-muted)">精準字串替換</td><td style="color:var(--text-muted)">只送 diff，省 token</td></tr>
+            <tr style="border-top:1px solid var(--border)"><td style="padding:0.4rem 0"><code>Write</code></td><td style="color:var(--text-muted)">完整寫入/覆蓋</td><td style="color:var(--text-muted)">建立新檔或全部重寫</td></tr>
+            <tr style="border-top:1px solid var(--border)"><td style="padding:0.4rem 0"><code>Glob</code></td><td style="color:var(--text-muted)">檔案模式搜尋</td><td style="color:var(--text-muted)">支援 **/*.ts 語法</td></tr>
+            <tr style="border-top:1px solid var(--border)"><td style="padding:0.4rem 0"><code>Grep</code></td><td style="color:var(--text-muted)">內容正則搜尋</td><td style="color:var(--text-muted)">跨檔搜尋關鍵字</td></tr>
+          </table>
+        </div>
+      </div>
+      <div class="hook-card">
+        <div class="hook-header"><div class="hook-dot" style="background:var(--blue)"></div><h3>精準指令範例</h3></div>
+        <div class="hook-body">
+          <div class="code-block" style="font-size:0.83rem">
+<span class="comment"># 讀取特定行範圍（省 token）</span><br/>
+<span class="str">你: </span>讀取 src/auth.ts 第 50 到 100 行<br/><br/>
+<span class="comment"># 找出所有 TypeScript 檔案</span><br/>
+<span class="str">你: </span>找出 src/ 目錄下所有 .ts 檔案，列出檔名<br/><br/>
+<span class="comment"># 搜尋函式定義</span><br/>
+<span class="str">你: </span>在整個專案中搜尋 getUserById 函式的所有定義<br/><br/>
+<span class="comment"># 批次修改</span><br/>
+<span class="str">你: </span>把 src/ 下所有 console.log 替換成 logger.debug，<br/>
+     用 Grep 先找出所有位置再逐一修改
+          </div>
+        </div>
+      </div>
+      <div class="hook-card">
+        <div class="hook-header"><div class="hook-dot" style="background:var(--yellow)"></div><h3>Edit vs Write 選擇原則</h3></div>
+        <div class="hook-body">
+          <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.8rem">Edit 適合小修改；Write 適合全部重寫或新建檔案。</p>
+          <div class="code-block" style="font-size:0.83rem">
+<span class="comment"># 用 Edit（只改一個函式）</span><br/>
+<span class="str">你: </span>修改 calculateTax 函式，加入稅率上限判斷<br/><br/>
+<span class="comment"># 用 Write（重寫整個設定檔）</span><br/>
+<span class="str">你: </span>重新生成 .eslintrc.json，<br/>
+     啟用 TypeScript 嚴格模式規則<br/><br/>
+<span class="comment"># 建立新檔案</span><br/>
+<span class="str">你: </span>建立 src/utils/formatDate.ts，<br/>
+     包含 formatISO, formatRelative 兩個函式
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- M3: Debug -->
+<section id="mod3" style="background:var(--bg2)">
+  <div class="container">
+    <div class="section-tag">模組 3</div>
+    <h2 class="section-title">Debug 工作流 — 系統性除錯方法</h2>
+    <p class="section-sub">把錯誤訊息、stack trace、測試失敗日誌直接餵給 Claude，快速定位根因。</p>
+    <div class="cheat-grid" style="grid-template-columns:repeat(auto-fit,minmax(320px,1fr))">
+      <div class="hook-card">
+        <div class="hook-header"><div class="hook-dot" style="background:var(--red)"></div><h3>黃金 Debug 流程</h3></div>
+        <div class="hook-body">
+          <div style="display:flex;flex-direction:column;gap:0.6rem;font-size:0.85rem">
+            <div style="background:rgba(255,71,87,0.1);border-left:3px solid var(--red);padding:0.6rem 0.8rem;border-radius:0 6px 6px 0">
+              <strong>Step 1：貼上完整錯誤</strong><br/>
+              <span style="color:var(--text-muted)">把 stack trace 完整複製，不要只貼最後一行</span>
+            </div>
+            <div style="background:rgba(255,215,0,0.08);border-left:3px solid var(--yellow);padding:0.6rem 0.8rem;border-radius:0 6px 6px 0">
+              <strong>Step 2：說明複現步驟</strong><br/>
+              <span style="color:var(--text-muted)">「執行什麼操作後出現這個錯誤」</span>
+            </div>
+            <div style="background:rgba(0,212,170,0.08);border-left:3px solid var(--green);padding:0.6rem 0.8rem;border-radius:0 6px 6px 0">
+              <strong>Step 3：讓 Claude 定位根因</strong><br/>
+              <span style="color:var(--text-muted)">「分析錯誤，找出根本原因，不要直接修改」</span>
+            </div>
+            <div style="background:rgba(108,71,255,0.08);border-left:3px solid var(--primary);padding:0.6rem 0.8rem;border-radius:0 6px 6px 0">
+              <strong>Step 4：確認後執行修復</strong><br/>
+              <span style="color:var(--text-muted)">「你的分析正確，請修復這個問題」</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="hook-card">
+        <div class="hook-header"><div class="hook-dot" style="background:var(--yellow)"></div><h3>各類錯誤 Prompt 範本</h3></div>
+        <div class="hook-body">
+          <div class="code-block" style="font-size:0.82rem">
+<span class="comment"># 執行時錯誤</span><br/>
+<span class="str">你: </span>這是執行 npm run dev 後的錯誤：<br/>
+[貼上 stack trace]<br/>
+讀取相關檔案，分析根本原因<br/><br/>
+<span class="comment"># 型別錯誤（TypeScript）</span><br/>
+<span class="str">你: </span>TypeScript 報錯：TS2345 Argument of type 'X'...<br/>
+讀取 src/types.ts，解釋為何型別不匹配並修復<br/><br/>
+<span class="comment"># 測試失敗</span><br/>
+<span class="prompt">$ </span><span class="cmd">npm test</span> 2>&1 | <span class="cmd">claude</span> <span class="flag">-p</span> <span class="str">"分析測試失敗原因，找出問題所在的程式碼行數"</span>
+          </div>
+        </div>
+      </div>
+      <div class="hook-card">
+        <div class="hook-header"><div class="hook-dot" style="background:var(--green)"></div><h3>進階 Debug 技巧</h3></div>
+        <div class="hook-body">
+          <div class="code-block" style="font-size:0.83rem">
+<span class="comment"># 讓 Claude 加入偵錯日誌</span><br/>
+<span class="str">你: </span>在 processOrder 函式的關鍵步驟加入<br/>
+     console.log，幫助我追蹤資料流<br/><br/>
+<span class="comment"># 比較兩個版本差異</span><br/>
+<span class="str">你: </span>這段程式在 v1.2 可以正常執行，v1.3 出現 bug。<br/>
+     比較 git diff v1.2..v1.3 -- src/order.ts，<br/>
+     找出是哪個改動導致 bug<br/><br/>
+<span class="comment"># 假設驗證</span><br/>
+<span class="str">你: </span>我懷疑問題是 race condition。<br/>
+     分析 fetchUser 和 updateCache 是否有競態問題
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- M4: CLAUDE.md -->
+<section id="mod4" style="background:var(--bg)">
+  <div class="container">
+    <div class="section-tag">模組 4</div>
+    <h2 class="section-title">CLAUDE.md — 讓 Claude 記住你的專案規則</h2>
+    <p class="section-sub">CLAUDE.md 是 Claude 每次啟動都會自動讀取的記憶檔，相當於給 AI 的「員工手冊」。</p>
+    <div class="cheat-grid" style="grid-template-columns:repeat(auto-fit,minmax(320px,1fr))">
+      <div class="hook-card">
+        <div class="hook-header"><div class="hook-dot" style="background:var(--green)"></div><h3>完整 CLAUDE.md 範本</h3></div>
+        <div class="hook-body">
+          <div class="code-block" style="font-size:0.8rem">
+            <button class="copy-btn" onclick="copyCode(this)">複製</button>
+<span class="comment"># CLAUDE.md — 專案 AI 助理規範</span><br/><br/>
+<span class="str">## 專案概述</span><br/>
+電商平台後端 API，Node.js + TypeScript + PostgreSQL。<br/>
+目前 Sprint：結帳流程重構（截止 2026-05-15）。<br/><br/>
+<span class="str">## 技術棧</span><br/>
+- Runtime：Node.js 20 + TypeScript 5.x<br/>
+- 框架：Fastify（不是 Express）<br/>
+- ORM：Prisma（不要用 raw SQL）<br/>
+- 測試：Vitest + Supertest<br/>
+- CI：GitHub Actions<br/><br/>
+<span class="str">## 程式碼規範</span><br/>
+- 所有函式必須有 JSDoc 型別標注<br/>
+- 錯誤處理用 Result&lt;T, E&gt; 模式，不用 throw<br/>
+- 禁止 any，使用 unknown 再 narrow<br/>
+- 命名：camelCase 變數，PascalCase 型別<br/><br/>
+<span class="str">## 禁止行為</span><br/>
+- 不可直接修改 package.json<br/>
+- 不可 git push 到 main 分支<br/>
+- 不可刪除 migrations/ 下的任何檔案<br/>
+- 不可使用 console.log（用 logger.*）<br/><br/>
+<span class="str">## 常用指令</span><br/>
+- 啟動開發：`npm run dev`<br/>
+- 執行測試：`npm test`<br/>
+- 生成 migration：`npx prisma migrate dev`<br/>
+- 型別檢查：`npx tsc --noEmit`
+          </div>
+        </div>
+      </div>
+      <div class="hook-card">
+        <div class="hook-header"><div class="hook-dot" style="background:var(--blue)"></div><h3>多層 CLAUDE.md 架構</h3></div>
+        <div class="hook-body">
+          <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.8rem">可以在子目錄放置 CLAUDE.md，覆寫或補充根目錄的規則。</p>
+          <div class="code-block" style="font-size:0.83rem">
+            <button class="copy-btn" onclick="copyCode(this)">複製</button>
+project-root/<br/>
+├── CLAUDE.md          <span class="comment">← 全專案規範</span><br/>
+├── src/<br/>
+│   ├── api/<br/>
+│   │   └── CLAUDE.md  <span class="comment">← API 模組特定規則</span><br/>
+│   └── db/<br/>
+│       └── CLAUDE.md  <span class="comment">← 資料庫操作規則</span><br/>
+└── tests/<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;└── CLAUDE.md      <span class="comment">← 測試撰寫規範</span>
+          </div>
+          <div class="alert alert-tip" style="margin-top:0.8rem">
+            <span class="alert-icon">💡</span>子目錄的 CLAUDE.md 會<strong>疊加</strong>在父目錄之上，不會完全覆蓋。
+          </div>
+        </div>
+      </div>
+      <div class="hook-card">
+        <div class="hook-header"><div class="hook-dot" style="background:var(--accent)"></div><h3>讓 Claude 自動生成 CLAUDE.md</h3></div>
+        <div class="hook-body">
+          <div class="code-block" style="font-size:0.83rem">
+            <button class="copy-btn" onclick="copyCode(this)">複製</button>
+<span class="comment"># 方法一：使用 /init 指令</span><br/>
+在 REPL 中執行：<br/>
+<span class="cmd">/init</span><br/><br/>
+<span class="comment"># Claude 會自動掃描專案並生成</span><br/><br/>
+<span class="comment"># 方法二：手動引導生成</span><br/>
+<span class="str">你: </span>分析這個專案的技術棧、結構與規範，<br/>
+     生成一份完整的 CLAUDE.md，<br/>
+     包含技術棧、禁止行為、常用指令三個段落
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     開發實戰篇
+     ══════════════════════════════════════ -->
+
+<!-- 程式開發流程 -->
+<section id="dev-program" style="background:var(--bg2)">
+  <div class="container">
+    <div class="section-tag">開發實戰</div>
+    <h2 class="section-title">程式開發流程 — 從需求到上線</h2>
+    <p class="section-sub">用 Claude Code 完成完整開發週期：需求分析 → 設計 → 實作 → 測試 → 部署。</p>
+    <div class="cheat-grid" style="grid-template-columns:repeat(auto-fit,minmax(320px,1fr))">
+      <div class="hook-card">
+        <div class="hook-header"><div class="hook-dot" style="background:var(--primary)"></div><h3>Phase 1：需求拆解與設計</h3></div>
+        <div class="hook-body">
+          <div class="code-block" style="font-size:0.83rem">
+<span class="comment"># 把需求轉換成技術任務</span><br/>
+<span class="str">你: </span>需求：用戶可以用 Google 帳號登入。<br/>
+     分析需要建立哪些檔案、修改哪些現有程式碼，<br/>
+     列出具體的實作步驟清單，不要開始寫程式碼<br/><br/>
+<span class="comment"># 設計 API 介面</span><br/>
+<span class="str">你: </span>設計 /api/auth/google 這個 endpoint 的<br/>
+     request/response 格式、錯誤碼定義，<br/>
+     以 TypeScript interface 輸出
+          </div>
+        </div>
+      </div>
+      <div class="hook-card">
+        <div class="hook-header"><div class="hook-dot" style="background:var(--green)"></div><h3>Phase 2：逐步實作</h3></div>
+        <div class="hook-body">
+          <div class="code-block" style="font-size:0.83rem">
+<span class="comment"># 先建立骨架，再填充細節</span><br/>
+<span class="str">你: </span>先建立 src/auth/google.ts 的檔案骨架，<br/>
+     包含函式簽名和 JSDoc，不要實作內容<br/><br/>
+<span class="comment"># 實作核心邏輯</span><br/>
+<span class="str">你: </span>實作 verifyGoogleToken 函式，<br/>
+     使用 google-auth-library，<br/>
+     需要處理 token 過期和無效 token 兩種錯誤<br/><br/>
+<span class="comment"># 整合現有程式碼</span><br/>
+<span class="str">你: </span>讀取 src/auth/jwt.ts，把 Google 登入結果<br/>
+     整合到現有的 JWT 發放流程
+          </div>
+        </div>
+      </div>
+      <div class="hook-card">
+        <div class="hook-header"><div class="hook-dot" style="background:var(--blue)"></div><h3>Phase 3：驗證與修正</h3></div>
+        <div class="hook-body">
+          <div class="code-block" style="font-size:0.83rem">
+<span class="comment"># 執行型別檢查</span><br/>
+<span class="prompt">$ </span>npx tsc --noEmit 2>&1 | <span class="cmd">claude</span> <span class="flag">-p</span> <span class="str">"修復所有 TypeScript 錯誤"</span><br/><br/>
+<span class="comment"># 執行 lint</span><br/>
+<span class="prompt">$ </span>npx eslint src/auth/ 2>&1 | <span class="cmd">claude</span> <span class="flag">-p</span> <span class="str">"修復 lint 錯誤，不要改變程式邏輯"</span><br/><br/>
+<span class="comment"># 自查</span><br/>
+<span class="str">你: </span>審查剛才寫的 google.ts，<br/>
+     找出是否有安全漏洞或邊界情況未處理
+          </div>
+        </div>
+      </div>
+      <div class="hook-card">
+        <div class="hook-header"><div class="hook-dot" style="background:var(--yellow)"></div><h3>開發時常用的黃金 Prompt</h3></div>
+        <div class="hook-body">
+          <div class="code-block" style="font-size:0.82rem">
+<span class="comment"># 不確定怎麼實作時</span><br/>
+<span class="str">你: </span>給我三種實作方式，說明各自的優缺點，<br/>
+     再推薦最適合我們專案的方案<br/><br/>
+<span class="comment"># 程式碼太複雜時</span><br/>
+<span class="str">你: </span>這個函式超過 80 行，請在不改變行為的<br/>
+     前提下重構，拆成 3-4 個小函式<br/><br/>
+<span class="comment"># 不確定對不對時</span><br/>
+<span class="str">你: </span>這段程式在高並發下會有什麼問題？<br/>
+     模擬 1000 個同時請求的情境分析
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 前端開發 -->
+<section id="frontend" style="background:var(--bg)">
+  <div class="container">
+    <div class="section-tag">開發實戰</div>
+    <h2 class="section-title">前端開發 — React / Vue / CSS 實戰</h2>
+    <p class="section-sub">元件開發、樣式撰寫、狀態管理、效能優化，讓 Claude 加速你的前端工作流。</p>
+    <div class="cheat-grid" style="grid-template-columns:repeat(auto-fit,minmax(320px,1fr))">
+      <div class="hook-card">
+        <div class="hook-header"><div class="hook-dot" style="background:var(--blue)"></div><h3>React 元件開發</h3></div>
+        <div class="hook-body">
+          <div class="code-block" style="font-size:0.82rem">
+<span class="comment"># 建立元件（含 TypeScript props）</span><br/>
+<span class="str">你: </span>建立 UserCard 元件，props 包含<br/>
+     name, avatar, role, isOnline。<br/>
+     使用 Tailwind CSS，支援深色模式<br/><br/>
+<span class="comment"># 讓現有元件支援更多功能</span><br/>
+<span class="str">你: </span>讀取 Table.tsx，加入排序、篩選、分頁功能，<br/>
+     不要改變原有的 props interface<br/><br/>
+<span class="comment"># 找出 re-render 問題</span><br/>
+<span class="str">你: </span>分析 Dashboard.tsx，找出不必要的 re-render，<br/>
+     建議哪裡需要 useMemo / useCallback
+          </div>
+        </div>
+      </div>
+      <div class="hook-card">
+        <div class="hook-header"><div class="hook-dot" style="background:var(--green)"></div><h3>CSS / 樣式問題</h3></div>
+        <div class="hook-body">
+          <div class="code-block" style="font-size:0.82rem">
+<span class="comment"># 跑版問題（貼截圖描述）</span><br/>
+<span class="str">你: </span>這個卡片在手機上會跑版，<br/>
+     側邊欄覆蓋到主內容。讀取 Layout.css，<br/>
+     找出問題並修復 RWD<br/><br/>
+<span class="comment"># 動畫實作</span><br/>
+<span class="str">你: </span>幫 Sidebar 加入滑入動畫，<br/>
+     開啟時從左側滑入 300ms ease-out，<br/>
+     使用 CSS transform 而非 width 動畫<br/><br/>
+<span class="comment"># 設計稿轉程式碼</span><br/>
+<span class="str">你: </span>根據這個設計規格實作 Header 元件：<br/>
+     高度 64px，毛玻璃效果，陰影 0 2px 8px...
+          </div>
+        </div>
+      </div>
+      <div class="hook-card">
+        <div class="hook-header"><div class="hook-dot" style="background:var(--yellow)"></div><h3>狀態管理與資料流</h3></div>
+        <div class="hook-body">
+          <div class="code-block" style="font-size:0.82rem">
+<span class="comment"># Zustand store 設計</span><br/>
+<span class="str">你: </span>設計購物車的 Zustand store，<br/>
+     支援加入、移除、更新數量、清空，<br/>
+     需要 persist 到 localStorage<br/><br/>
+<span class="comment"># React Query 整合</span><br/>
+<span class="str">你: </span>把 useEffect + fetch 改成 React Query，<br/>
+     設定 5 分鐘 staleTime，支援樂觀更新<br/><br/>
+<span class="comment"># 表單驗證</span><br/>
+<span class="str">你: </span>用 React Hook Form + Zod 重寫 LoginForm，<br/>
+     驗證規則：email 格式、密碼最少 8 字元含大小寫
+          </div>
+        </div>
+      </div>
+      <div class="hook-card">
+        <div class="hook-header"><div class="hook-dot" style="background:var(--accent)"></div><h3>效能優化</h3></div>
+        <div class="hook-body">
+          <div class="code-block" style="font-size:0.82rem">
+<span class="comment"># Bundle 分析</span><br/>
+<span class="prompt">$ </span>npm run build -- --analyze 2>&1 | <span class="cmd">claude</span> <span class="flag">-p</span> <span class="str">"找出最大的 bundle，建議 code splitting 策略"</span><br/><br/>
+<span class="comment"># 圖片優化</span><br/>
+<span class="str">你: </span>掃描 public/ 目錄，找出未優化的圖片，<br/>
+     建議轉換格式與使用 next/image 的方式<br/><br/>
+<span class="comment"># Lighthouse 分析</span><br/>
+<span class="str">你: </span>根據這份 Lighthouse 報告，<br/>
+     優先修復 CLS 和 LCP 問題，<br/>
+     給出具體的程式碼修改建議
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 後端開發 -->
+<section id="backend" style="background:var(--bg2)">
+  <div class="container">
+    <div class="section-tag">開發實戰</div>
+    <h2 class="section-title">後端 / API 開發 — Node.js、Python、資料庫</h2>
+    <p class="section-sub">設計 REST/GraphQL API、資料庫 Schema、驗證邏輯、效能優化一手包辦。</p>
+    <div class="cheat-grid" style="grid-template-columns:repeat(auto-fit,minmax(320px,1fr))">
+      <div class="hook-card">
+        <div class="hook-header"><div class="hook-dot" style="background:var(--green)"></div><h3>API 設計與實作</h3></div>
+        <div class="hook-body">
+          <div class="code-block" style="font-size:0.82rem">
+<span class="comment"># 設計 REST API</span><br/>
+<span class="str">你: </span>設計商品 CRUD API：<br/>
+     - 符合 REST 規範的 URL 設計<br/>
+     - 每個 endpoint 的 request/response 格式<br/>
+     - 錯誤回應的標準格式<br/><br/>
+<span class="comment"># 生成 Fastify route</span><br/>
+<span class="str">你: </span>根據這份 API 設計，實作 src/routes/products.ts，<br/>
+     使用 Fastify schema validation<br/><br/>
+<span class="comment"># Middleware 開發</span><br/>
+<span class="str">你: </span>撰寫 rate limiting middleware，<br/>
+     每個 IP 每分鐘最多 100 次請求，<br/>
+     超過後回傳 429 並附上 Retry-After header
+          </div>
+        </div>
+      </div>
+      <div class="hook-card">
+        <div class="hook-header"><div class="hook-dot" style="background:var(--blue)"></div><h3>資料庫操作</h3></div>
+        <div class="hook-body">
+          <div class="code-block" style="font-size:0.82rem">
+<span class="comment"># Schema 設計</span><br/>
+<span class="str">你: </span>設計電商訂單系統的 Prisma schema，<br/>
+     包含 User, Product, Order, OrderItem，<br/>
+     考慮軟刪除、審計欄位（createdAt, updatedAt）<br/><br/>
+<span class="comment"># SQL 優化</span><br/>
+<span class="str">你: </span>分析這個 SQL 查詢為何慢，<br/>
+     讀取 schema.prisma，建議需要加哪些 index：<br/>
+     SELECT * FROM orders WHERE userId = ? AND status = ?<br/><br/>
+<span class="comment"># Migration 生成</span><br/>
+<span class="str">你: </span>我需要在 User 表加入 phoneNumber 欄位（可為空），<br/>
+     幫我生成 Prisma migration 並說明影響範圍
+          </div>
+        </div>
+      </div>
+      <div class="hook-card">
+        <div class="hook-header"><div class="hook-dot" style="background:var(--yellow)"></div><h3>驗證與安全</h3></div>
+        <div class="hook-body">
+          <div class="code-block" style="font-size:0.82rem">
+<span class="comment"># 輸入驗證</span><br/>
+<span class="str">你: </span>用 Zod 撰寫 CreateOrderSchema，<br/>
+     包含業務規則驗證（數量 > 0, 總金額 > 0）<br/><br/>
+<span class="comment"># 安全審查</span><br/>
+<span class="str">你: </span>審查 src/api/ 下所有 route handler，<br/>
+     找出潛在的 SQL injection、路徑遍歷、<br/>
+     未驗證用戶權限的問題<br/><br/>
+<span class="comment"># JWT 實作</span><br/>
+<span class="str">你: </span>實作 refresh token 機制：<br/>
+     access token 15 分鐘過期，refresh token 7 天，<br/>
+     支援單點登出（黑名單機制）
+          </div>
+        </div>
+      </div>
+      <div class="hook-card">
+        <div class="hook-header"><div class="hook-dot" style="background:var(--red)"></div><h3>效能與可觀測性</h3></div>
+        <div class="hook-body">
+          <div class="code-block" style="font-size:0.82rem">
+<span class="comment"># N+1 查詢問題</span><br/>
+<span class="str">你: </span>分析 getUsersWithOrders 函式，<br/>
+     找出 N+1 查詢問題並用 Prisma include 修復<br/><br/>
+<span class="comment"># 加入 Logging</span><br/>
+<span class="str">你: </span>在所有 route handler 加入結構化日誌，<br/>
+     記錄：請求 ID、用戶 ID、執行時間、狀態碼<br/><br/>
+<span class="comment"># Redis 快取</span><br/>
+<span class="str">你: </span>為 getProductList 加入 Redis 快取，<br/>
+     TTL 5 分鐘，商品更新時自動清除快取
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 重構策略 -->
+<section id="refactoring" style="background:var(--bg)">
+  <div class="container">
+    <div class="section-tag">開發實戰</div>
+    <h2 class="section-title">重構策略 — 安全、有系統地改善程式碼</h2>
+    <p class="section-sub">讓 Claude 協助你在不破壞功能的前提下提升程式碼品質。</p>
+    <div class="cheat-grid" style="grid-template-columns:repeat(auto-fit,minmax(320px,1fr))">
+      <div class="hook-card">
+        <div class="hook-header"><div class="hook-dot" style="background:var(--primary)"></div><h3>重構前必做：分析現狀</h3></div>
+        <div class="hook-body">
+          <div class="code-block" style="font-size:0.82rem">
+<span class="comment"># 找出技術債</span><br/>
+<span class="str">你: </span>掃描 src/ 目錄，找出：<br/>
+     - 函式超過 50 行的<br/>
+     - 重複超過 3 次的程式碼片段<br/>
+     - 圈複雜度過高的函式<br/>
+     輸出優先順序排列的清單，不要修改任何程式碼<br/><br/>
+<span class="comment"># 建立安全網（先寫測試）</span><br/>
+<span class="str">你: </span>在重構 OrderService 之前，<br/>
+     先為它的所有公開方法撰寫測試，<br/>
+     確保重構後行為不變
+          </div>
+        </div>
+      </div>
+      <div class="hook-card">
+        <div class="hook-header"><div class="hook-dot" style="background:var(--green)"></div><h3>常見重構模式</h3></div>
+        <div class="hook-body">
+          <div class="code-block" style="font-size:0.82rem">
+<span class="comment"># 拆分大函式</span><br/>
+<span class="str">你: </span>processCheckout 有 120 行，<br/>
+     拆成 validateCart, calculatePricing,<br/>
+     createOrder, sendConfirmation 四個函式<br/><br/>
+<span class="comment"># 消除重複</span><br/>
+<span class="str">你: </span>這三個地方都有類似的錯誤處理邏輯，<br/>
+     提取成 handleApiError 共用函式<br/><br/>
+<span class="comment"># 依賴注入</span><br/>
+<span class="str">你: </span>UserService 直接 import db，難以測試。<br/>
+     重構成依賴注入模式，讓 db 從外部傳入
+          </div>
+        </div>
+      </div>
+      <div class="hook-card">
+        <div class="hook-header"><div class="hook-dot" style="background:var(--yellow)"></div><h3>大型重構策略</h3></div>
+        <div class="hook-body">
+          <div class="code-block" style="font-size:0.82rem">
+<span class="comment"># 漸進式遷移（舊轉新）</span><br/>
+<span class="str">你: </span>把 callbacks 改成 async/await，<br/>
+     每次只改一個檔案，先從 userService.js 開始，<br/>
+     改完後執行測試確認無誤再繼續<br/><br/>
+<span class="comment"># 架構調整</span><br/>
+<span class="str">你: </span>目前 controllers 直接操作 db，<br/>
+     幫我規劃加入 Service Layer 的步驟，<br/>
+     以不影響現有 API 為前提，逐步遷移
+          </div>
+          <div class="alert alert-warn" style="margin-top:0.8rem">
+            <span class="alert-icon">⚠️</span>
+            重構前務必確認有測試覆蓋，並在獨立分支操作。
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 測試撰寫 -->
+<section id="testing" style="background:var(--bg2)">
+  <div class="container">
+    <div class="section-tag">開發實戰</div>
+    <h2 class="section-title">測試撰寫 — 單元、整合、E2E 全覆蓋</h2>
+    <p class="section-sub">讓 Claude 根據你的程式碼自動生成測試，並指導建立可維護的測試策略。</p>
+    <div class="cheat-grid" style="grid-template-columns:repeat(auto-fit,minmax(320px,1fr))">
+      <div class="hook-card">
+        <div class="hook-header"><div class="hook-dot" style="background:var(--green)"></div><h3>自動生成測試</h3></div>
+        <div class="hook-body">
+          <div class="code-block" style="font-size:0.82rem">
+<span class="comment"># 為函式生成單元測試</span><br/>
+<span class="str">你: </span>讀取 src/utils/price.ts，<br/>
+     為每個 export 函式寫 Vitest 測試，<br/>
+     覆蓋正常值、邊界值（0、負數、極大值）、<br/>
+     錯誤情境（無效輸入）<br/><br/>
+<span class="comment"># API 整合測試</span><br/>
+<span class="str">你: </span>用 Supertest 為 POST /api/orders 寫整合測試，<br/>
+     測試：成功建立、缺少必填欄位、<br/>
+     庫存不足、未登入三種錯誤情境
+          </div>
+        </div>
+      </div>
+      <div class="hook-card">
+        <div class="hook-header"><div class="hook-dot" style="background:var(--blue)"></div><h3>TDD 工作流</h3></div>
+        <div class="hook-body">
+          <div class="code-block" style="font-size:0.82rem">
+<span class="comment"># Step 1：先寫失敗測試</span><br/>
+<span class="str">你: </span>我要實作 discountCalculator，<br/>
+     規則：會員 9 折、VIP 8 折、生日當天再 95 折。<br/>
+     先只寫測試，不要實作函式<br/><br/>
+<span class="comment"># Step 2：最小實作通過測試</span><br/>
+<span class="str">你: </span>現在實作 discountCalculator 讓所有測試通過，<br/>
+     保持最簡單的實作<br/><br/>
+<span class="comment"># Step 3：重構</span><br/>
+<span class="str">你: </span>測試全部通過了，重構 discountCalculator<br/>
+     讓它更清晰，加入規則說明的 comment
+          </div>
+        </div>
+      </div>
+      <div class="hook-card">
+        <div class="hook-header"><div class="hook-dot" style="background:var(--yellow)"></div><h3>提升覆蓋率策略</h3></div>
+        <div class="hook-body">
+          <div class="code-block" style="font-size:0.82rem">
+<span class="comment"># 分析覆蓋率缺口</span><br/>
+<span class="prompt">$ </span>npm test -- --coverage 2>&1 | <span class="cmd">claude</span> <span class="flag">-p</span> <span class="str">"分析覆蓋率報告，找出最關鍵的未覆蓋程式碼，優先補充哪些測試"</span><br/><br/>
+<span class="comment"># Mock 外部依賴</span><br/>
+<span class="str">你: </span>OrderService 的測試需要 mock EmailService，<br/>
+     用 Vitest vi.mock 的方式示範如何正確 mock，<br/>
+     並驗證發信函式被呼叫了幾次
+          </div>
+        </div>
+      </div>
+      <div class="hook-card">
+        <div class="hook-header"><div class="hook-dot" style="background:var(--accent)"></div><h3>E2E 測試（Playwright）</h3></div>
+        <div class="hook-body">
+          <div class="code-block" style="font-size:0.82rem">
+<span class="comment"># 關鍵流程 E2E 測試</span><br/>
+<span class="str">你: </span>用 Playwright 撰寫結帳流程的 E2E 測試：<br/>
+     1. 登入 → 加入購物車 → 結帳 → 確認訂單<br/>
+     使用 Page Object Model 模式<br/><br/>
+<span class="comment"># 視覺回歸測試</span><br/>
+<span class="str">你: </span>加入 Playwright 截圖比對，<br/>
+     確保 ProductCard 元件的外觀不會意外改變
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Prompt 技巧 -->
+<section id="prompt-tips" style="background:var(--bg)">
+  <div class="container">
+    <div class="section-tag">開發實戰</div>
+    <h2 class="section-title">Prompt 工程技巧 — 讓 Claude 更精準理解你的意圖</h2>
+    <p class="section-sub">優化你給 Claude 的指令，獲得更準確、更快速的結果。</p>
+    <div class="cheat-grid" style="grid-template-columns:repeat(auto-fit,minmax(320px,1fr))">
+      <div class="hook-card">
+        <div class="hook-header"><div class="hook-dot" style="background:var(--primary)"></div><h3>結構化 Prompt 模板</h3></div>
+        <div class="hook-body">
+          <div class="code-block" style="font-size:0.82rem">
+<span class="comment"># 完整的任務 Prompt 結構</span><br/>
+<span class="str">你: </span>[背景] 這是一個 Next.js 電商專案。<br/>
+     [目標] 我需要實作商品搜尋功能。<br/>
+     [限制] 不能改動 API 路由，只能改前端邏輯。<br/>
+     [參考] 讀取 src/pages/products.tsx。<br/>
+     [輸出格式] 先說明實作思路，再給程式碼。<br/><br/>
+<span class="comment"># 角色設定</span><br/>
+<span class="str">你: </span>你是資深 TypeScript 工程師，<br/>
+     偏好函數式編程風格，重視型別安全。<br/>
+     請幫我設計...
+          </div>
+        </div>
+      </div>
+      <div class="hook-card">
+        <div class="hook-header"><div class="hook-dot" style="background:var(--green)"></div><h3>少樣本學習（Few-shot）</h3></div>
+        <div class="hook-body">
+          <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.8rem">給 Claude 看你喜歡的程式碼風格範例，它會模仿。</p>
+          <div class="code-block" style="font-size:0.82rem">
+<span class="comment"># 給風格範例</span><br/>
+<span class="str">你: </span>我的程式碼風格如下：<br/>
+<br/>
+// 範例（好的風格）<br/>
+const getUser = (id: string): Result&lt;User, Error&gt; => {<br/>
+&nbsp;&nbsp;if (!id) return err(new ValidationError('id required'));<br/>
+&nbsp;&nbsp;return ok(db.users.find(id));<br/>
+};<br/>
+<br/>
+請用相同風格撰寫 getOrder 函式，<br/>
+包含訂單不存在的錯誤處理
+          </div>
+        </div>
+      </div>
+      <div class="hook-card">
+        <div class="hook-header"><div class="hook-dot" style="background:var(--yellow)"></div><h3>常見錯誤 & 修正方式</h3></div>
+        <div class="hook-body">
+          <div style="font-size:0.83rem">
+            <div style="margin-bottom:0.8rem;padding:0.6rem;background:rgba(255,71,87,0.08);border-radius:8px">
+              <div style="color:var(--red);font-weight:600;margin-bottom:0.2rem">❌ 太模糊</div>
+              「幫我優化這段程式碼」<br/>
+              <div style="color:var(--green);font-weight:600;margin-top:0.4rem;margin-bottom:0.2rem">✅ 具體說明</div>
+              「這個函式平均執行 500ms，分析瓶頸並優化到 100ms 以內，不能改變 API 介面」
+            </div>
+            <div style="margin-bottom:0.8rem;padding:0.6rem;background:rgba(255,71,87,0.08);border-radius:8px">
+              <div style="color:var(--red);font-weight:600;margin-bottom:0.2rem">❌ 一次太多事</div>
+              「重構、加測試、優化效能、更新文件」<br/>
+              <div style="color:var(--green);font-weight:600;margin-top:0.4rem;margin-bottom:0.2rem">✅ 一次一件事</div>
+              先重構，完成後再加測試
+            </div>
+            <div style="padding:0.6rem;background:rgba(255,71,87,0.08);border-radius:8px">
+              <div style="color:var(--red);font-weight:600;margin-bottom:0.2rem">❌ 沒有限制條件</div>
+              「重寫這個模組」<br/>
+              <div style="color:var(--green);font-weight:600;margin-top:0.4rem;margin-bottom:0.2rem">✅ 給出邊界</div>
+              「重寫這個模組，不改變 interface，不能新增依賴，測試必須全部通過」
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="hook-card">
+        <div class="hook-header"><div class="hook-dot" style="background:var(--blue)"></div><h3>控制輸出格式</h3></div>
+        <div class="hook-body">
+          <div class="code-block" style="font-size:0.82rem">
+<span class="comment"># 只要程式碼，不要解釋</span><br/>
+<span class="str">你: </span>只輸出程式碼，不需要解釋<br/><br/>
+<span class="comment"># 只要解釋，不要修改</span><br/>
+<span class="str">你: </span>解釋這段程式的邏輯，不要修改任何檔案<br/><br/>
+<span class="comment"># 要 diff 格式</span><br/>
+<span class="str">你: </span>以 git diff 格式輸出需要修改的內容<br/><br/>
+<span class="comment"># 要清單格式</span><br/>
+<span class="str">你: </span>以 markdown checklist 列出待辦事項，<br/>
+     每項不超過 15 個字<br/><br/>
+<span class="comment"># 分段輸出（避免 token 超限）</span><br/>
+<span class="str">你: </span>只實作第 1 步，完成後我會請你繼續第 2 步
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CHEATSHEET -->
+<section id="cheatsheet">
+  <div class="container">
+    <div class="section-tag">速查表</div>
+    <h2 class="section-title">快速參考卡</h2>
+    <p class="section-sub">把這頁加入書籤，開發時隨時查閱。</p>
+
+    <div class="cheat-grid">
+      <div class="cheat-card">
+        <h3>鍵盤快捷鍵</h3>
+        <div class="cheat-row">
+          <span class="cheat-desc">送出訊息</span>
+          <code>Enter</code>
+        </div>
+        <div class="cheat-row">
+          <span class="cheat-desc">換行（不送出）</span>
+          <code>Shift+Enter</code>
+        </div>
+        <div class="cheat-row">
+          <span class="cheat-desc">切換 Auto-accept 模式</span>
+          <code>Shift+Tab</code>
+        </div>
+        <div class="cheat-row">
+          <span class="cheat-desc">中斷當前操作</span>
+          <code>Esc</code>
+        </div>
+        <div class="cheat-row">
+          <span class="cheat-desc">歷史指令上一條</span>
+          <code>↑ 方向鍵</code>
+        </div>
+        <div class="cheat-row">
+          <span class="cheat-desc">退出 Claude Code</span>
+          <code>Ctrl+C</code>
+        </div>
+      </div>
+
+      <div class="cheat-card">
+        <h3>Slash 指令</h3>
+        <div class="cheat-row">
+          <span class="cheat-desc">顯示說明</span>
+          <code>/help</code>
+        </div>
+        <div class="cheat-row">
+          <span class="cheat-desc">清除對話</span>
+          <code>/clear</code>
+        </div>
+        <div class="cheat-row">
+          <span class="cheat-desc">壓縮上下文</span>
+          <code>/compact</code>
+        </div>
+        <div class="cheat-row">
+          <span class="cheat-desc">初始化 CLAUDE.md</span>
+          <code>/init</code>
+        </div>
+        <div class="cheat-row">
+          <span class="cheat-desc">切換模型</span>
+          <code>/model</code>
+        </div>
+        <div class="cheat-row">
+          <span class="cheat-desc">開啟設定</span>
+          <code>/config</code>
+        </div>
+      </div>
+
+      <div class="cheat-card">
+        <h3>CLI 參數</h3>
+        <div class="cheat-row">
+          <span class="cheat-desc">非互動模式</span>
+          <code>-p "任務"</code>
+        </div>
+        <div class="cheat-row">
+          <span class="cheat-desc">繼續上次對話</span>
+          <code>--continue</code>
+        </div>
+        <div class="cheat-row">
+          <span class="cheat-desc">選擇歷史對話</span>
+          <code>--resume</code>
+        </div>
+        <div class="cheat-row">
+          <span class="cheat-desc">指定模型</span>
+          <code>--model</code>
+        </div>
+        <div class="cheat-row">
+          <span class="cheat-desc">限制可用工具</span>
+          <code>--allowedTools</code>
+        </div>
+        <div class="cheat-row">
+          <span class="cheat-desc">查看版本</span>
+          <code>--version</code>
+        </div>
+      </div>
+
+      <div class="cheat-card">
+        <h3>可用模型 ID</h3>
+        <div class="cheat-row">
+          <span class="cheat-desc">最強推理（複雜任務）</span>
+          <code>claude-opus-4-7</code>
+        </div>
+        <div class="cheat-row">
+          <span class="cheat-desc">平衡速度/品質（預設）</span>
+          <code>claude-sonnet-4-6</code>
+        </div>
+        <div class="cheat-row">
+          <span class="cheat-desc">最快速度（簡單任務）</span>
+          <code>claude-haiku-4-5</code>
+        </div>
+        <div class="cheat-row">
+          <span class="cheat-desc">切換方式</span>
+          <code>/model &lt;model-id&gt;</code>
+        </div>
+      </div>
+
+      <div class="cheat-card">
+        <h3>Settings 檔案位置</h3>
+        <div class="cheat-row">
+          <span class="cheat-desc">使用者全域設定</span>
+          <code>~/.claude/settings.json</code>
+        </div>
+        <div class="cheat-row">
+          <span class="cheat-desc">專案設定（加入 git）</span>
+          <code>.claude/settings.json</code>
+        </div>
+        <div class="cheat-row">
+          <span class="cheat-desc">本機私有設定</span>
+          <code>.claude/settings.local.json</code>
+        </div>
+        <div class="cheat-row">
+          <span class="cheat-desc">忽略檔案</span>
+          <code>.claudeignore</code>
+        </div>
+      </div>
+
+      <div class="cheat-card">
+        <h3>Hooks 事件類型</h3>
+        <div class="cheat-row">
+          <span class="cheat-desc">工具執行前</span>
+          <code>PreToolUse</code>
+        </div>
+        <div class="cheat-row">
+          <span class="cheat-desc">工具執行後</span>
+          <code>PostToolUse</code>
+        </div>
+        <div class="cheat-row">
+          <span class="cheat-desc">Claude 回應前</span>
+          <code>PreResponse</code>
+        </div>
+        <div class="cheat-row">
+          <span class="cheat-desc">任務完成時</span>
+          <code>Stop</code>
+        </div>
+        <div class="cheat-row">
+          <span class="cheat-desc">對話通知時</span>
+          <code>Notification</code>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     中階篇
+     ════════════════════════════════════════ -->
+<section id="intermediate" style="background:var(--bg)">
+  <div class="container">
+    <div class="section-tag">中階篇</div>
+    <h2 class="section-title">中階用法 — 讓 Claude 真正融入你的工作流</h2>
+    <p class="section-sub">掌握 Git 整合、大型專案策略、自訂指令與權限管理，建立可重複的高效開發模式。</p>
+
+    <!-- ── M1: Git 深度整合 ── -->
+    <div style="margin-bottom:3.5rem">
+      <h3 style="font-size:1.25rem;font-weight:700;margin-bottom:0.4rem;display:flex;align-items:center;gap:0.6rem">
+        <span style="background:rgba(0,212,170,0.2);width:36px;height:36px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;font-size:1rem">🔀</span>
+        M1 · Git 深度整合
+      </h3>
+      <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:1.2rem">讓 Claude 全程參與 git 工作流：diff 分析、commit 撰寫、PR 說明、衝突解決。</p>
+
+      <div class="cheat-grid" style="grid-template-columns:repeat(auto-fit,minmax(340px,1fr))">
+        <div class="hook-card">
+          <div class="hook-header">
+            <div class="hook-dot" style="background:var(--green)"></div>
+            <h3>自動分析 diff 並撰寫 commit</h3>
+          </div>
+          <div class="hook-body">
+            <p>把 git diff 直接管道給 Claude，讓它產生符合 Conventional Commits 規範的訊息。</p>
+            <div class="code-block">
+              <button class="copy-btn" onclick="copyCode(this)">複製</button>
+<span class="comment"># 產生 commit 訊息草稿</span><br/>
+<span class="prompt">$ </span><span class="cmd">git diff</span> <span class="flag">--staged</span> | <span class="cmd">claude</span> <span class="flag">-p</span> <span class="str">"依照 Conventional Commits 格式，根據這份 diff 撰寫 commit 訊息，只輸出訊息本身"</span><br/><br/>
+<span class="comment"># 完整流程（分析 + 提交）</span><br/>
+<span class="prompt">$ </span><span class="cmd">git add</span> <span class="flag">-p</span>  <span class="comment"># 互動式暫存</span><br/>
+<span class="prompt">$ </span><span class="cmd">claude</span> <span class="str">"查看 staged diff，撰寫 commit 並執行 git commit"</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hook-card">
+          <div class="hook-header">
+            <div class="hook-dot" style="background:var(--blue)"></div>
+            <h3>衝突解決助手</h3>
+          </div>
+          <div class="hook-body">
+            <p>遇到 merge conflict 時，讓 Claude 理解雙方意圖並給出最佳合併方案。</p>
+            <div class="code-block">
+              <button class="copy-btn" onclick="copyCode(this)">複製</button>
+<span class="comment"># 在發生衝突後執行</span><br/>
+<span class="prompt">$ </span><span class="cmd">git diff</span> <span class="flag">--diff-filter=U</span> | <span class="cmd">claude</span> <span class="flag">-p</span> <span class="str">"分析這些 merge conflict，說明兩邊各自的意圖，給出最佳合併策略"</span><br/><br/>
+<span class="comment"># 讓 Claude 直接解決衝突</span><br/>
+<span class="prompt">$ </span><span class="cmd">claude</span> <span class="str">"讀取有衝突的檔案，理解兩邊修改目的後，解決所有 conflict marker 並保留正確邏輯"</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hook-card">
+          <div class="hook-header">
+            <div class="hook-dot" style="background:var(--yellow)"></div>
+            <h3>PR 說明自動生成</h3>
+          </div>
+          <div class="hook-body">
+            <p>比對 main branch 產生完整的 PR description，包含 summary、testing plan。</p>
+            <div class="code-block">
+              <button class="copy-btn" onclick="copyCode(this)">複製</button>
+<span class="prompt">$ </span><span class="cmd">git log</span> <span class="flag">main..HEAD --oneline</span> | <span class="cmd">claude</span> <span class="flag">-p</span> <span class="str">"根據這些 commits 撰寫 GitHub PR 說明，包含 Summary、Motivation、Testing Plan 三個段落"</span><br/><br/>
+<span class="comment"># 或在 REPL 中</span><br/>
+<span class="prompt">$ </span><span class="cmd">claude</span><br/>
+<span class="str">你: </span>比對 main 分支，產生這個 PR 的完整說明與測試清單
+            </div>
+          </div>
+        </div>
+
+        <div class="hook-card">
+          <div class="hook-header">
+            <div class="hook-dot" style="background:var(--accent)"></div>
+            <h3>程式碼審查（本機）</h3>
+          </div>
+          <div class="hook-body">
+            <p>在推送前讓 Claude 扮演 reviewer，找出潛在問題。</p>
+            <div class="code-block">
+              <button class="copy-btn" onclick="copyCode(this)">複製</button>
+<span class="prompt">$ </span><span class="cmd">git diff</span> main | <span class="cmd">claude</span> <span class="flag">-p</span> <span class="str">"扮演資深工程師，審查這份 diff：找出 bug、安全漏洞、效能問題、可讀性問題，以條列方式輸出，嚴重程度分為 Critical / Warning / Suggestion"</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── M2: 大型專案上下文管理 ── -->
+    <div style="margin-bottom:3.5rem">
+      <h3 style="font-size:1.25rem;font-weight:700;margin-bottom:0.4rem;display:flex;align-items:center;gap:0.6rem">
+        <span style="background:rgba(79,195,247,0.2);width:36px;height:36px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;font-size:1rem">📦</span>
+        M2 · 大型專案上下文管理
+      </h3>
+      <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:1.2rem">token 是有限資源。學習精準控制 Claude 讀取哪些內容，避免無謂浪費。</p>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.5rem">
+        <div class="install-card">
+          <h3>策略 1：精準指向檔案</h3>
+          <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:0.8rem">不要說「看一下整個專案」，而是明確告訴 Claude 要看哪個檔案。</p>
+          <div class="code-block">
+<span class="comment"># 差的做法</span><br/>
+<span class="str">你: </span>幫我找一下哪裡有 bug<br/><br/>
+<span class="comment"># 好的做法</span><br/>
+<span class="str">你: </span>讀取 src/api/auth.ts 第 42-80 行，<br/>
+找出為什麼 JWT refresh 會在 edge case 失敗
+          </div>
+        </div>
+
+        <div class="install-card">
+          <h3>策略 2：善用 /compact</h3>
+          <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:0.8rem">長對話後執行，保留重要結論並清理中間過程。</p>
+          <div class="code-block">
+<span class="comment"># 判斷時機：當 Claude 開始忘記</span><br/>
+<span class="comment"># 前面說過的事情時，立刻 compact</span><br/><br/>
+在 REPL 中輸入：<br/>
+<span class="cmd">/compact</span><br/><br/>
+<span class="comment"># 或帶自訂摘要方向</span><br/>
+<span class="cmd">/compact</span> 重點保留：auth 模組的修改決策與待辦事項
+          </div>
+        </div>
+
+        <div class="install-card">
+          <h3>策略 3：.claudeignore 精準排除</h3>
+          <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:0.8rem">排除不需要 Claude 讀取的大型或敏感檔案。</p>
+          <div class="code-block">
+<span class="comment"># .claudeignore</span><br/>
+node_modules/<br/>
+dist/ build/ .next/<br/>
+*.min.js *.bundle.js<br/>
+coverage/ .nyc_output/<br/>
+*.log *.csv *.sqlite<br/>
+.env* secrets/ credentials*<br/>
+__pycache__/ *.pyc<br/>
+*.lock  <span class="comment"># 可視情況排除</span>
+          </div>
+        </div>
+
+        <div class="install-card">
+          <h3>策略 4：分段處理長任務</h3>
+          <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:0.8rem">把大任務切成多個對話，每段都有明確的輸入與產出。</p>
+          <div class="code-block">
+<span class="comment"># 階段式重構範例</span><br/>
+<span class="comment"># 對話 1：分析現狀</span><br/>
+<span class="str">你: </span>分析 services/ 目錄的架構問題，<br/>
+     只輸出問題清單，不要修改任何程式碼<br/><br/>
+<span class="comment"># 對話 2：執行改動（新的對話）</span><br/>
+<span class="str">你: </span>根據這份問題清單，先處理第 1、2 項
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── M3: 自訂 Slash 指令 ── -->
+    <div style="margin-bottom:3.5rem">
+      <h3 style="font-size:1.25rem;font-weight:700;margin-bottom:0.4rem;display:flex;align-items:center;gap:0.6rem">
+        <span style="background:rgba(255,107,53,0.2);width:36px;height:36px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;font-size:1rem">⚡</span>
+        M3 · 自訂 Slash 指令（Custom Commands）
+      </h3>
+      <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:1.2rem">將常用的 prompt 模板儲存為 Slash 指令，一鍵重複使用。</p>
+
+      <div class="cheat-grid" style="grid-template-columns:repeat(auto-fit,minmax(340px,1fr))">
+        <div class="hook-card">
+          <div class="hook-header">
+            <div class="hook-dot" style="background:var(--green)"></div>
+            <h3>建立專案層級指令</h3>
+          </div>
+          <div class="hook-body">
+            <p>放在 <code>.claude/commands/</code> 目錄，整個團隊共用。</p>
+            <div class="code-block">
+              <button class="copy-btn" onclick="copyCode(this)">複製</button>
+<span class="comment"># 建立目錄結構</span><br/>
+mkdir <span class="flag">-p</span> .claude/commands<br/><br/>
+<span class="comment"># .claude/commands/review.md</span><br/>
+扮演資深工程師，審查 $ARGUMENTS 這個檔案：<br/>
+1. 找出潛在 bug 和邏輯錯誤<br/>
+2. 標記安全漏洞（SQL injection, XSS 等）<br/>
+3. 提出效能改善建議<br/>
+4. 評估可讀性與命名品質<br/>
+嚴重程度標示：🔴 Critical / 🟡 Warning / 🔵 Suggestion
+            </div>
+            <div class="alert alert-tip" style="margin-top:0.8rem">
+              <span class="alert-icon">💡</span>在 REPL 中執行：<code>/review src/auth.ts</code>
+            </div>
+          </div>
+        </div>
+
+        <div class="hook-card">
+          <div class="hook-header">
+            <div class="hook-dot" style="background:var(--blue)"></div>
+            <h3>全域指令（個人用）</h3>
+          </div>
+          <div class="hook-body">
+            <p>放在 <code>~/.claude/commands/</code>，所有專案都可以使用。</p>
+            <div class="code-block">
+              <button class="copy-btn" onclick="copyCode(this)">複製</button>
+<span class="comment"># ~/.claude/commands/explain.md</span><br/>
+用繁體中文解釋 $ARGUMENTS，要求：<br/>
+- 先用一句話說明這段程式的目的<br/>
+- 逐行解釋關鍵邏輯<br/>
+- 指出可能的陷阱或邊界情況<br/>
+- 用具體例子輔助說明<br/><br/>
+<span class="comment"># ~/.claude/commands/test.md</span><br/>
+為 $ARGUMENTS 撰寫完整單元測試：<br/>
+- 覆蓋正常流程、邊界值、錯誤情境<br/>
+- 使用專案現有的測試框架<br/>
+- 不要 mock 不必要的依賴
+            </div>
+          </div>
+        </div>
+
+        <div class="hook-card">
+          <div class="hook-header">
+            <div class="hook-dot" style="background:var(--yellow)"></div>
+            <h3>帶參數的進階指令</h3>
+          </div>
+          <div class="hook-body">
+            <p><code>$ARGUMENTS</code> 接收 slash 指令後面的所有文字。</p>
+            <div class="code-block">
+              <button class="copy-btn" onclick="copyCode(this)">複製</button>
+<span class="comment"># .claude/commands/migrate.md</span><br/>
+分析 $ARGUMENTS 的資料庫 migration：<br/>
+1. 確認是否有不可逆操作（DROP, TRUNCATE）<br/>
+2. 評估對大量資料的效能影響<br/>
+3. 確認 rollback 策略<br/>
+4. 檢查 index 是否需要同步更新<br/><br/>
+<span class="comment"># 使用方式</span><br/>
+<span class="cmd">/migrate</span> db/migrations/20260101_add_user_roles.sql
+            </div>
+          </div>
+        </div>
+
+        <div class="hook-card">
+          <div class="hook-header">
+            <div class="hook-dot" style="background:var(--accent)"></div>
+            <h3>Bash 管道 + 自訂指令組合</h3>
+          </div>
+          <div class="hook-body">
+            <p>把 shell 腳本輸出餵給自訂指令，打造自動化分析流程。</p>
+            <div class="code-block">
+              <button class="copy-btn" onclick="copyCode(this)">複製</button>
+<span class="comment"># 找出所有 TODO 並讓 Claude 排優先順序</span><br/>
+<span class="prompt">$ </span><span class="cmd">grep</span> <span class="flag">-rn</span> <span class="str">"TODO\|FIXME\|HACK"</span> src/ | <span class="cmd">claude</span> <span class="flag">-p</span> <span class="str">"依照業務影響與技術風險排出優先順序，輸出 markdown 表格"</span><br/><br/>
+<span class="comment"># 分析 bundle 大小</span><br/>
+<span class="prompt">$ </span><span class="cmd">npm run build</span> 2>&1 | <span class="cmd">claude</span> <span class="flag">-p</span> <span class="str">"分析 bundle 大小問題，找出最大的模組並建議優化方案"</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── M4: 權限管理 ── -->
+    <div style="margin-bottom:2rem">
+      <h3 style="font-size:1.25rem;font-weight:700;margin-bottom:0.4rem;display:flex;align-items:center;gap:0.6rem">
+        <span style="background:rgba(255,71,87,0.2);width:36px;height:36px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;font-size:1rem">🔒</span>
+        M4 · 權限管理與安全設定
+      </h3>
+      <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:1.2rem">精確控制 Claude 可以做什麼、不能做什麼，降低意外操作風險。</p>
+
+      <div class="cheat-grid" style="grid-template-columns:repeat(auto-fit,minmax(340px,1fr))">
+        <div class="hook-card">
+          <div class="hook-header">
+            <div class="hook-dot" style="background:var(--red)"></div>
+            <h3>allowedTools / disallowedTools</h3>
+          </div>
+          <div class="hook-body">
+            <p>CLI 參數白名單 / 黑名單，適合 CI/CD 或高風險環境。</p>
+            <div class="code-block">
+              <button class="copy-btn" onclick="copyCode(this)">複製</button>
+<span class="comment"># 只允許唯讀工具（最安全）</span><br/>
+<span class="prompt">$ </span><span class="cmd">claude</span> <span class="flag">-p</span> <span class="str">"審查程式碼品質"</span> <span class="flag">--allowedTools</span> <span class="str">"Read,Grep,Glob"</span><br/><br/>
+<span class="comment"># 禁止執行 shell 指令</span><br/>
+<span class="prompt">$ </span><span class="cmd">claude</span> <span class="flag">--disallowedTools</span> <span class="str">"Bash"</span><br/><br/>
+<span class="comment"># 允許特定 Bash 指令（前綴匹配）</span><br/>
+<span class="prompt">$ </span><span class="cmd">claude</span> <span class="flag">--allowedTools</span> <span class="str">"Bash(npm run *),Read,Edit"</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hook-card">
+          <div class="hook-header">
+            <div class="hook-dot" style="background:var(--yellow)"></div>
+            <h3>settings.json 持久化權限</h3>
+          </div>
+          <div class="hook-body">
+            <p>在設定檔中永久設定允許與拒絕的工具，不需每次帶參數。</p>
+            <div class="code-block">
+              <button class="copy-btn" onclick="copyCode(this)">複製</button>
+<span class="comment">// .claude/settings.json</span><br/>
+{<br/>
+&nbsp;&nbsp;<span class="str">"permissions"</span>: {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"allow"</span>: [<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"Bash(npm run test)"</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"Bash(npm run lint)"</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"Bash(git diff*)"</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"Bash(git log*)"</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;],<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"deny"</span>: [<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"Bash(rm *)"</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"Bash(git push*)"</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"Bash(sudo *)"</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;]<br/>
+&nbsp;&nbsp;}<br/>
+}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="alert alert-warn" style="margin-top:1rem">
+        <span class="alert-icon">⚠️</span>
+        <div><strong>原則：最小權限</strong>。在 CI/CD 環境中，優先使用 <code>--allowedTools</code> 白名單而非黑名單，避免因工具更新導致意外授權。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     進階篇
+     ════════════════════════════════════════ -->
+<section id="advanced" style="background:var(--bg2)">
+  <div class="container">
+    <div class="section-tag">進階篇</div>
+    <h2 class="section-title">進階用法 — 自動化、多 Agent、MCP 整合</h2>
+    <p class="section-sub">構建企業級 AI 開發工作流：MCP 伺服器、Agent SDK、CI/CD 自動化、多 Agent 協作系統。</p>
+
+    <!-- ── A1: MCP 伺服器設定 ── -->
+    <div style="margin-bottom:3.5rem">
+      <h3 style="font-size:1.25rem;font-weight:700;margin-bottom:0.4rem;display:flex;align-items:center;gap:0.6rem">
+        <span style="background:rgba(255,71,87,0.2);width:36px;height:36px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;font-size:1rem">🔌</span>
+        A1 · MCP 伺服器設定與整合
+      </h3>
+      <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:1.2rem">MCP（Model Context Protocol）讓 Claude 連接外部工具：資料庫、API、雲端服務。</p>
+
+      <div class="cheat-grid" style="grid-template-columns:repeat(auto-fit,minmax(340px,1fr))">
+        <div class="hook-card">
+          <div class="hook-header">
+            <div class="hook-dot" style="background:var(--green)"></div>
+            <h3>新增 MCP 伺服器（設定檔）</h3>
+          </div>
+          <div class="hook-body">
+            <p>在 settings.json 的 <code>mcpServers</code> 欄位設定，可設置多個伺服器。</p>
+            <div class="code-block">
+              <button class="copy-btn" onclick="copyCode(this)">複製</button>
+<span class="comment">// .claude/settings.json</span><br/>
+{<br/>
+&nbsp;&nbsp;<span class="str">"mcpServers"</span>: {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"filesystem"</span>: {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"command"</span>: <span class="str">"npx"</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"args"</span>: [<span class="str">"-y"</span>, <span class="str">"@modelcontextprotocol/server-filesystem"</span>, <span class="str">"/home/user/projects"</span>]<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;},<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"github"</span>: {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"command"</span>: <span class="str">"npx"</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"args"</span>: [<span class="str">"-y"</span>, <span class="str">"@modelcontextprotocol/server-github"</span>],<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"env"</span>: { <span class="str">"GITHUB_TOKEN"</span>: <span class="str">"ghp_xxx"</span> }<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;},<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"postgres"</span>: {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"command"</span>: <span class="str">"npx"</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"args"</span>: [<span class="str">"-y"</span>, <span class="str">"@modelcontextprotocol/server-postgres"</span>, <span class="str">"postgresql://localhost/mydb"</span>]<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br/>
+&nbsp;&nbsp;}<br/>
+}
+            </div>
+          </div>
+        </div>
+
+        <div class="hook-card">
+          <div class="hook-header">
+            <div class="hook-dot" style="background:var(--blue)"></div>
+            <h3>CLI 快速新增 MCP</h3>
+          </div>
+          <div class="hook-body">
+            <p>使用 <code>claude mcp add</code> 指令快速加入常用伺服器。</p>
+            <div class="code-block">
+              <button class="copy-btn" onclick="copyCode(this)">複製</button>
+<span class="comment"># 互動式新增（推薦入門）</span><br/>
+<span class="prompt">$ </span><span class="cmd">claude mcp add</span><br/><br/>
+<span class="comment"># 直接指定 npm 套件</span><br/>
+<span class="prompt">$ </span><span class="cmd">claude mcp add</span> <span class="flag">--transport stdio</span> github -- npx <span class="flag">-y</span> @modelcontextprotocol/server-github<br/><br/>
+<span class="comment"># 列出已安裝</span><br/>
+<span class="prompt">$ </span><span class="cmd">claude mcp list</span><br/><br/>
+<span class="comment"># 移除</span><br/>
+<span class="prompt">$ </span><span class="cmd">claude mcp remove</span> github<br/><br/>
+<span class="comment"># 在 REPL 中查看狀態</span><br/>
+<span class="cmd">/mcp</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hook-card">
+          <div class="hook-header">
+            <div class="hook-dot" style="background:var(--accent)"></div>
+            <h3>自建 MCP 伺服器（TypeScript）</h3>
+          </div>
+          <div class="hook-body">
+            <p>用 MCP SDK 快速建立自訂工具，讓 Claude 呼叫你的內部 API。</p>
+            <div class="code-block">
+              <button class="copy-btn" onclick="copyCode(this)">複製</button>
+<span class="comment">// my-mcp-server.ts</span><br/>
+<span class="cmd">import</span> { McpServer } from <span class="str">"@modelcontextprotocol/sdk/server/mcp.js"</span>;<br/>
+<span class="cmd">import</span> { StdioServerTransport } from <span class="str">"@modelcontextprotocol/sdk/server/stdio.js"</span>;<br/>
+<span class="cmd">import</span> { z } from <span class="str">"zod"</span>;<br/><br/>
+const server = new McpServer({ name: <span class="str">"my-tools"</span>, version: <span class="str">"1.0.0"</span> });<br/><br/>
+server.tool(<span class="str">"get_deploy_status"</span>,<br/>
+&nbsp;&nbsp;{ env: z.enum([<span class="str">"prod"</span>,<span class="str">"staging"</span>]) },<br/>
+&nbsp;&nbsp;async ({ env }) => {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;const status = await fetchDeployStatus(env);<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;return { content: [{ type: <span class="str">"text"</span>, text: JSON.stringify(status) }] };<br/>
+&nbsp;&nbsp;}<br/>
+);<br/><br/>
+await server.connect(new StdioServerTransport());
+            </div>
+          </div>
+        </div>
+
+        <div class="hook-card">
+          <div class="hook-header">
+            <div class="hook-dot" style="background:var(--yellow)"></div>
+            <h3>實用 MCP 套件清單</h3>
+          </div>
+          <div class="hook-body">
+            <table style="width:100%;font-size:0.83rem;border-collapse:collapse">
+              <tr style="color:var(--text-muted)">
+                <th style="text-align:left;padding:0.3rem 0">套件</th>
+                <th style="text-align:left;padding:0.3rem 0">功能</th>
+              </tr>
+              <tr style="border-top:1px solid var(--border)">
+                <td style="padding:0.4rem 0"><code>server-github</code></td>
+                <td style="color:var(--text-muted)">GitHub Issues / PR / Repos</td>
+              </tr>
+              <tr style="border-top:1px solid var(--border)">
+                <td style="padding:0.4rem 0"><code>server-postgres</code></td>
+                <td style="color:var(--text-muted)">PostgreSQL 查詢與 Schema</td>
+              </tr>
+              <tr style="border-top:1px solid var(--border)">
+                <td style="padding:0.4rem 0"><code>server-slack</code></td>
+                <td style="color:var(--text-muted)">發送訊息、查頻道</td>
+              </tr>
+              <tr style="border-top:1px solid var(--border)">
+                <td style="padding:0.4rem 0"><code>server-brave-search</code></td>
+                <td style="color:var(--text-muted)">網路搜尋</td>
+              </tr>
+              <tr style="border-top:1px solid var(--border)">
+                <td style="padding:0.4rem 0"><code>server-memory</code></td>
+                <td style="color:var(--text-muted)">跨對話記憶儲存</td>
+              </tr>
+              <tr style="border-top:1px solid var(--border)">
+                <td style="padding:0.4rem 0"><code>server-puppeteer</code></td>
+                <td style="color:var(--text-muted)">瀏覽器自動化</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── A2: Agent SDK ── -->
+    <div style="margin-bottom:3.5rem">
+      <h3 style="font-size:1.25rem;font-weight:700;margin-bottom:0.4rem;display:flex;align-items:center;gap:0.6rem">
+        <span style="background:rgba(108,71,255,0.25);width:36px;height:36px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;font-size:1rem">🤖</span>
+        A2 · Anthropic SDK — 建立自訂 Agent
+      </h3>
+      <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:1.2rem">透過 Anthropic API 建立程式化 Agent，整合自有工具與業務邏輯。</p>
+
+      <div class="cheat-grid" style="grid-template-columns:repeat(auto-fit,minmax(340px,1fr))">
+        <div class="hook-card">
+          <div class="hook-header">
+            <div class="hook-dot" style="background:var(--green)"></div>
+            <h3>基礎 Agent Loop（Python）</h3>
+          </div>
+          <div class="hook-body">
+            <p>最簡單的 tool_use Agent：定義工具 → 呼叫 API → 執行工具 → 回饋結果。</p>
+            <div class="code-block">
+              <button class="copy-btn" onclick="copyCode(this)">複製</button>
+<span class="cmd">import</span> anthropic, json<br/><br/>
+client = anthropic.Anthropic()<br/><br/>
+tools = [{<br/>
+&nbsp;&nbsp;<span class="str">"name"</span>: <span class="str">"run_tests"</span>,<br/>
+&nbsp;&nbsp;<span class="str">"description"</span>: <span class="str">"執行專案測試並回傳結果"</span>,<br/>
+&nbsp;&nbsp;<span class="str">"input_schema"</span>: {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"type"</span>: <span class="str">"object"</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"properties"</span>: { <span class="str">"pattern"</span>: { <span class="str">"type"</span>: <span class="str">"string"</span> } }<br/>
+&nbsp;&nbsp;}<br/>
+}]<br/><br/>
+messages = [{ <span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: <span class="str">"執行所有測試並修復失敗的案例"</span> }]<br/><br/>
+<span class="cmd">while</span> True:<br/>
+&nbsp;&nbsp;resp = client.messages.create(<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;model=<span class="str">"claude-opus-4-7"</span>, max_tokens=4096,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;tools=tools, messages=messages<br/>
+&nbsp;&nbsp;)<br/>
+&nbsp;&nbsp;<span class="cmd">if</span> resp.stop_reason == <span class="str">"end_turn"</span>: <span class="cmd">break</span><br/>
+&nbsp;&nbsp;<span class="comment"># 處理 tool_use 並回饋結果 ...</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hook-card">
+          <div class="hook-header">
+            <div class="hook-dot" style="background:var(--blue)"></div>
+            <h3>基礎 Agent（TypeScript）</h3>
+          </div>
+          <div class="hook-body">
+            <p>Node.js/TypeScript 版本，適合整合到現有前後端專案。</p>
+            <div class="code-block">
+              <button class="copy-btn" onclick="copyCode(this)">複製</button>
+<span class="cmd">import</span> Anthropic from <span class="str">"@anthropic-ai/sdk"</span>;<br/><br/>
+const client = new Anthropic();<br/><br/>
+const tools = [{<br/>
+&nbsp;&nbsp;name: <span class="str">"search_codebase"</span>,<br/>
+&nbsp;&nbsp;description: <span class="str">"搜尋專案中的程式碼"</span>,<br/>
+&nbsp;&nbsp;input_schema: {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;type: <span class="str">"object"</span> as const,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;properties: { query: { type: <span class="str">"string"</span> } },<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;required: [<span class="str">"query"</span>]<br/>
+&nbsp;&nbsp;}<br/>
+}];<br/><br/>
+const response = await client.messages.create({<br/>
+&nbsp;&nbsp;model: <span class="str">"claude-sonnet-4-6"</span>,<br/>
+&nbsp;&nbsp;max_tokens: 8192,<br/>
+&nbsp;&nbsp;tools,<br/>
+&nbsp;&nbsp;messages: [{ role: <span class="str">"user"</span>, content: task }]<br/>
+});
+            </div>
+          </div>
+        </div>
+
+        <div class="hook-card">
+          <div class="hook-header">
+            <div class="hook-dot" style="background:var(--yellow)"></div>
+            <h3>Prompt Caching（節省費用）</h3>
+          </div>
+          <div class="hook-body">
+            <p>對長系統提示啟用快取，重複呼叫最多省 90% token 費用。</p>
+            <div class="code-block">
+              <button class="copy-btn" onclick="copyCode(this)">複製</button>
+<span class="cmd">import</span> Anthropic from <span class="str">"@anthropic-ai/sdk"</span>;<br/><br/>
+const client = new Anthropic();<br/><br/>
+const response = await client.messages.create({<br/>
+&nbsp;&nbsp;model: <span class="str">"claude-sonnet-4-6"</span>,<br/>
+&nbsp;&nbsp;max_tokens: 4096,<br/>
+&nbsp;&nbsp;system: [{<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;type: <span class="str">"text"</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;text: longSystemPrompt,  <span class="comment">// 大型說明文件</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;cache_control: { type: <span class="str">"ephemeral"</span> }  <span class="comment">// 啟用快取</span><br/>
+&nbsp;&nbsp;}],<br/>
+&nbsp;&nbsp;messages: [{ role: <span class="str">"user"</span>, content: userQuery }]<br/>
+});<br/><br/>
+<span class="comment">// 查看快取命中率</span><br/>
+console.log(response.usage.cache_read_input_tokens);
+            </div>
+          </div>
+        </div>
+
+        <div class="hook-card">
+          <div class="hook-header">
+            <div class="hook-dot" style="background:var(--accent)"></div>
+            <h3>Extended Thinking（深度推理）</h3>
+          </div>
+          <div class="hook-body">
+            <p>啟用 thinking 讓模型進行深度推理，適合複雜架構決策。</p>
+            <div class="code-block">
+              <button class="copy-btn" onclick="copyCode(this)">複製</button>
+const response = await client.messages.create({<br/>
+&nbsp;&nbsp;model: <span class="str">"claude-opus-4-7"</span>,<br/>
+&nbsp;&nbsp;max_tokens: 16000,<br/>
+&nbsp;&nbsp;thinking: {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;type: <span class="str">"enabled"</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;budget_tokens: 10000  <span class="comment">// 推理 token 上限</span><br/>
+&nbsp;&nbsp;},<br/>
+&nbsp;&nbsp;messages: [{<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;role: <span class="str">"user"</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;content: <span class="str">"設計這個微服務的最佳資料庫分片策略"</span><br/>
+&nbsp;&nbsp;}]<br/>
+});<br/><br/>
+<span class="comment">// thinking block 包含推理過程</span><br/>
+const thinking = response.content.find(b => b.type === <span class="str">"thinking"</span>);
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── A3: 多 Agent 架構 ── -->
+    <div style="margin-bottom:3.5rem">
+      <h3 style="font-size:1.25rem;font-weight:700;margin-bottom:0.4rem;display:flex;align-items:center;gap:0.6rem">
+        <span style="background:rgba(0,212,170,0.2);width:36px;height:36px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;font-size:1rem">🕸️</span>
+        A3 · 多 Agent 協作架構
+      </h3>
+      <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:1.2rem">Orchestrator（協調者）派任務給多個 Subagent（執行者），並行處理大型工作。</p>
+
+      <div style="display:grid;grid-template-columns:1fr;gap:1.5rem">
+        <div class="hook-card">
+          <div class="hook-header">
+            <div class="hook-dot" style="background:var(--primary)"></div>
+            <h3>Orchestrator → Subagent 模式（Python）</h3>
+          </div>
+          <div class="hook-body">
+            <p>Orchestrator 負責拆解任務，Subagent 並行執行，結果彙整後回報。</p>
+            <div class="code-block" style="font-size:0.82rem">
+              <button class="copy-btn" onclick="copyCode(this)">複製</button>
+<span class="cmd">import</span> anthropic, asyncio<br/><br/>
+client = anthropic.Anthropic()<br/><br/>
+<span class="cmd">async def</span> <span class="flag">subagent</span>(task: str, tools: list) -> str:<br/>
+&nbsp;&nbsp;<span class="str">"""單一 Subagent：執行指定任務"""</span><br/>
+&nbsp;&nbsp;messages = [{ <span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: task }]<br/>
+&nbsp;&nbsp;<span class="cmd">while</span> True:<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;resp = client.messages.create(<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;model=<span class="str">"claude-sonnet-4-6"</span>, max_tokens=4096,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tools=tools, messages=messages<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="cmd">if</span> resp.stop_reason == <span class="str">"end_turn"</span>:<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cmd">return</span> resp.content[0].text<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"># ... 處理 tool_use</span><br/><br/>
+<span class="cmd">async def</span> <span class="flag">orchestrator</span>(project_path: str):<br/>
+&nbsp;&nbsp;<span class="str">"""並行派發子任務"""</span><br/>
+&nbsp;&nbsp;tasks = [<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;subagent(<span class="str">f"分析 {project_path}/src 的安全漏洞"</span>, security_tools),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;subagent(<span class="str">f"分析 {project_path}/src 的效能問題"</span>, perf_tools),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;subagent(<span class="str">f"分析 {project_path}/tests 的覆蓋率缺口"</span>, test_tools),<br/>
+&nbsp;&nbsp;]<br/>
+&nbsp;&nbsp;<span class="comment"># 並行執行所有子任務</span><br/>
+&nbsp;&nbsp;results = await asyncio.gather(*tasks)<br/>
+&nbsp;&nbsp;<span class="comment"># Orchestrator 彙整結果</span><br/>
+&nbsp;&nbsp;<span class="cmd">return</span> summarize(results)
+            </div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.2rem">
+          <div class="install-card">
+            <h3>設計原則：隔離性</h3>
+            <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:0.8rem">每個 Subagent 只能存取自己任務所需的工具，降低越權風險。</p>
+            <div class="code-block" style="font-size:0.82rem">
+<span class="comment"># 安全 Agent 只給唯讀工具</span><br/>
+security_tools = [<br/>
+&nbsp;&nbsp;<span class="str">"read_file"</span>, <span class="str">"search_code"</span><br/>
+]<br/><br/>
+<span class="comment"># 修復 Agent 才能寫入</span><br/>
+fix_tools = [<br/>
+&nbsp;&nbsp;<span class="str">"read_file"</span>, <span class="str">"edit_file"</span>, <span class="str">"run_tests"</span><br/>
+]
+            </div>
+          </div>
+          <div class="install-card">
+            <h3>設計原則：可觀測性</h3>
+            <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:0.8rem">記錄每個 Subagent 的輸入、輸出和工具呼叫，便於除錯。</p>
+            <div class="code-block" style="font-size:0.82rem">
+<span class="comment"># 每個工具呼叫都記錄 log</span><br/>
+<span class="cmd">def</span> <span class="flag">logged_tool</span>(name, fn):<br/>
+&nbsp;&nbsp;<span class="cmd">async def</span> wrapper(**kwargs):<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;logger.info(f<span class="str">"[{name}] input={kwargs}"</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;result = await fn(**kwargs)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;logger.info(f<span class="str">"[{name}] output={result}"</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="cmd">return</span> result<br/>
+&nbsp;&nbsp;<span class="cmd">return</span> wrapper
+            </div>
+          </div>
+          <div class="install-card">
+            <h3>設計原則：人工確認點</h3>
+            <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:0.8rem">高風險操作（刪除、部署）前強制等待人工確認，不要全自動。</p>
+            <div class="code-block" style="font-size:0.82rem">
+<span class="comment"># 部署前暫停等確認</span><br/>
+<span class="cmd">if</span> action.type == <span class="str">"deploy"</span>:<br/>
+&nbsp;&nbsp;print(f<span class="str">"即將部署到 {action.env}"</span>)<br/>
+&nbsp;&nbsp;confirm = input(<span class="str">"確認? (yes/no): "</span>)<br/>
+&nbsp;&nbsp;<span class="cmd">if</span> confirm != <span class="str">"yes"</span>:<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="cmd">raise</span> AbortError(<span class="str">"用戶取消部署"</span>)
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── A4: CI/CD ── -->
+    <div style="margin-bottom:3.5rem">
+      <h3 style="font-size:1.25rem;font-weight:700;margin-bottom:0.4rem;display:flex;align-items:center;gap:0.6rem">
+        <span style="background:rgba(255,215,0,0.2);width:36px;height:36px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;font-size:1rem">⚙️</span>
+        A4 · CI/CD 自動化流水線
+      </h3>
+      <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:1.2rem">在 GitHub Actions / GitLab CI 中整合 Claude，自動執行程式碼審查、測試分析、文件生成。</p>
+
+      <div class="cheat-grid" style="grid-template-columns:repeat(auto-fit,minmax(340px,1fr))">
+        <div class="hook-card">
+          <div class="hook-header">
+            <div class="hook-dot" style="background:var(--green)"></div>
+            <h3>GitHub Actions — PR 自動審查</h3>
+          </div>
+          <div class="hook-body">
+            <p>每次開 PR 時自動觸發 Claude 審查，結果以 comment 形式回覆到 PR。</p>
+            <div class="code-block" style="font-size:0.82rem">
+              <button class="copy-btn" onclick="copyCode(this)">複製</button>
+<span class="comment"># .github/workflows/claude-review.yml</span><br/>
+name: Claude Code Review<br/>
+on: [pull_request]<br/><br/>
+jobs:<br/>
+&nbsp;&nbsp;review:<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;runs-on: ubuntu-latest<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;steps:<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- uses: actions/checkout@v4<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;with: { fetch-depth: 0 }<br/><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- name: Install Claude Code<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;run: npm install -g @anthropic-ai/claude-code<br/><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- name: Review PR<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;env:<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;run: |<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;git diff origin/main...HEAD | \<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;claude -p \<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;--allowedTools "Read,Grep,Glob" \<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"審查這份 PR diff，找出 bug 與安全問題，markdown 格式輸出" \<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&gt; review.md<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cat review.md
+            </div>
+          </div>
+        </div>
+
+        <div class="hook-card">
+          <div class="hook-header">
+            <div class="hook-dot" style="background:var(--blue)"></div>
+            <h3>GitLab CI — 測試失敗分析</h3>
+          </div>
+          <div class="hook-body">
+            <p>測試失敗時自動讓 Claude 分析原因並建議修復方向。</p>
+            <div class="code-block" style="font-size:0.82rem">
+              <button class="copy-btn" onclick="copyCode(this)">複製</button>
+<span class="comment"># .gitlab-ci.yml</span><br/>
+test-and-analyze:<br/>
+&nbsp;&nbsp;stage: test<br/>
+&nbsp;&nbsp;script:<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;- npm test 2>&1 | tee test-output.txt || true<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;- |<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if grep -q "FAIL" test-output.txt; then<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cat test-output.txt | claude -p \<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;--allowedTools "Read,Grep" \<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"分析測試失敗原因，定位出問題的程式碼位置，給出修復建議"<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;fi<br/>
+&nbsp;&nbsp;variables:<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;ANTHROPIC_API_KEY: $ANTHROPIC_API_KEY
+            </div>
+          </div>
+        </div>
+
+        <div class="hook-card">
+          <div class="hook-header">
+            <div class="hook-dot" style="background:var(--yellow)"></div>
+            <h3>自動生成 API 文件</h3>
+          </div>
+          <div class="hook-body">
+            <p>每次 merge 到 main 自動掃描程式碼並更新 API 說明文件。</p>
+            <div class="code-block" style="font-size:0.82rem">
+              <button class="copy-btn" onclick="copyCode(this)">複製</button>
+<span class="comment"># 掃描 route 定義並生成文件</span><br/>
+<span class="prompt">$ </span><span class="cmd">find</span> src/routes <span class="flag">-name</span> <span class="str">"*.ts"</span> <span class="flag">-exec cat {} \;</span> | \<br/>
+&nbsp;&nbsp;<span class="cmd">claude</span> <span class="flag">-p</span> \<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="flag">--allowedTools</span> <span class="str">"Read,Write"</span> \<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"分析所有 API 路由，生成 OpenAPI 3.0 格式的 docs/api.yaml"</span><br/><br/>
+<span class="comment"># 或讓 Claude 讀整個目錄後輸出</span><br/>
+<span class="prompt">$ </span><span class="cmd">claude</span> <span class="flag">-p</span> <span class="str">"讀取 src/routes/ 所有檔案，生成繁體中文 API 文件到 docs/api.md"</span> \<br/>
+&nbsp;&nbsp;<span class="flag">--allowedTools</span> <span class="str">"Read,Glob,Write"</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hook-card">
+          <div class="hook-header">
+            <div class="hook-dot" style="background:var(--red)"></div>
+            <h3>安全掃描 Hook（CI 整合）</h3>
+          </div>
+          <div class="hook-body">
+            <p>在每次 commit 前自動執行安全掃描，阻止包含敏感資訊的程式碼。</p>
+            <div class="code-block" style="font-size:0.82rem">
+              <button class="copy-btn" onclick="copyCode(this)">複製</button>
+<span class="comment">#!/bin/bash  # .git/hooks/pre-push</span><br/>
+DIFF=$(git diff origin/main...HEAD)<br/>
+RESULT=$(echo "$DIFF" | claude -p \<br/>
+&nbsp;&nbsp;"檢查是否包含：API key、密碼、私鑰、hardcoded credentials。<br/>
+&nbsp;&nbsp;若有安全問題輸出 FAIL，否則輸出 PASS，只輸出這兩個字之一")<br/><br/>
+<span class="cmd">if</span> [ "$RESULT" = "FAIL" ]; then<br/>
+&nbsp;&nbsp;echo "❌ Claude 偵測到潛在安全問題，請檢查後再推送"<br/>
+&nbsp;&nbsp;<span class="cmd">exit</span> 1<br/>
+<span class="cmd">fi</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── A5: 進階 Hooks ── -->
+    <div style="margin-bottom:2rem">
+      <h3 style="font-size:1.25rem;font-weight:700;margin-bottom:0.4rem;display:flex;align-items:center;gap:0.6rem">
+        <span style="background:rgba(255,107,53,0.2);width:36px;height:36px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;font-size:1rem">🪝</span>
+        A5 · 進階 Hooks 與自動化腳本
+      </h3>
+      <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:1.2rem">完整 Hook 系統讓 Claude 的每個動作都可被攔截、驗證、增強。</p>
+
+      <div class="cheat-grid" style="grid-template-columns:repeat(auto-fit,minmax(340px,1fr))">
+        <div class="hook-card">
+          <div class="hook-header">
+            <div class="hook-dot" style="background:var(--green)"></div>
+            <h3>Hook JSON Schema（完整結構）</h3>
+          </div>
+          <div class="hook-body">
+            <div class="code-block" style="font-size:0.81rem">
+              <button class="copy-btn" onclick="copyCode(this)">複製</button>
+<span class="comment">// .claude/settings.json — 完整 hooks 結構</span><br/>
+{<br/>
+&nbsp;&nbsp;<span class="str">"hooks"</span>: {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"PreToolUse"</span>: [{<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"matcher"</span>: <span class="str">"Bash"</span>,   <span class="comment">// Edit | Write | Bash | 留空=全部</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"hooks"</span>: [{<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"type"</span>: <span class="str">"command"</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"command"</span>: <span class="str">"./scripts/pre-bash.sh"</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"timeout"</span>: 10  <span class="comment">// 秒，避免卡住</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}]<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;}],<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"PostToolUse"</span>: [{<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"matcher"</span>: <span class="str">"Write|Edit"</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"hooks"</span>: [{<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"type"</span>: <span class="str">"command"</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"command"</span>: <span class="str">"npx prettier --write {{file}}"</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}]<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;}],<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"Stop"</span>: [{<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"hooks"</span>: [{ <span class="str">"type"</span>: <span class="str">"command"</span>, <span class="str">"command"</span>: <span class="str">"./notify.sh"</span> }]<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;}]<br/>
+&nbsp;&nbsp;}<br/>
+}
+            </div>
+          </div>
+        </div>
+
+        <div class="hook-card">
+          <div class="hook-header">
+            <div class="hook-dot" style="background:var(--blue)"></div>
+            <h3>Hook stdin 輸入格式</h3>
+          </div>
+          <div class="hook-body">
+            <p>Hook 腳本透過 stdin 接收工具呼叫的 JSON 資訊。</p>
+            <div class="code-block" style="font-size:0.81rem">
+              <button class="copy-btn" onclick="copyCode(this)">複製</button>
+<span class="comment">#!/bin/bash  # pre-bash.sh</span><br/>
+INPUT=$(cat)  <span class="comment"># 讀取 stdin JSON</span><br/><br/>
+<span class="comment"># JSON 格式：</span><br/>
+<span class="comment"># { "tool": "Bash", "input": { "command": "rm -rf /" } }</span><br/><br/>
+COMMAND=$(echo "$INPUT" | python3 <span class="flag">-c</span> <span class="str">"import sys,json; print(json.load(sys.stdin)['input']['command'])"</span>)<br/><br/>
+<span class="comment"># 禁止危險指令</span><br/>
+<span class="cmd">if</span> echo "$COMMAND" | grep <span class="flag">-qE</span> <span class="str">"rm -rf|sudo rm|drop table"</span>; then<br/>
+&nbsp;&nbsp;echo <span class="str">"BLOCKED: 危險指令被攔截"</span> >&2<br/>
+&nbsp;&nbsp;<span class="cmd">exit</span> 2  <span class="comment"># exit 2 = 阻止工具執行</span><br/>
+<span class="cmd">fi</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hook-card">
+          <div class="hook-header">
+            <div class="hook-dot" style="background:var(--accent)"></div>
+            <h3>Hook 退出碼說明</h3>
+          </div>
+          <div class="hook-body">
+            <table style="width:100%;font-size:0.83rem;border-collapse:collapse">
+              <tr style="color:var(--text-muted)">
+                <th style="text-align:left;padding:0.4rem 0;width:60px">退出碼</th>
+                <th style="text-align:left;padding:0.4rem 0">行為</th>
+              </tr>
+              <tr style="border-top:1px solid var(--border)">
+                <td style="padding:0.4rem 0"><code>0</code></td>
+                <td style="color:var(--text-muted)">成功，繼續執行工具</td>
+              </tr>
+              <tr style="border-top:1px solid var(--border)">
+                <td style="padding:0.4rem 0"><code>1</code></td>
+                <td style="color:var(--text-muted)">警告，顯示 stderr 給 Claude，仍繼續</td>
+              </tr>
+              <tr style="border-top:1px solid var(--border)">
+                <td style="padding:0.4rem 0"><code>2</code></td>
+                <td style="color:var(--red)">阻止，取消工具執行並回報錯誤</td>
+              </tr>
+            </table>
+            <div class="alert alert-info" style="margin-top:0.8rem">
+              <span class="alert-icon">ℹ️</span>
+              PostToolUse Hook 的退出碼 2 會讓 Claude 知道後處理失敗，可觸發重試。
+            </div>
+          </div>
+        </div>
+
+        <div class="hook-card">
+          <div class="hook-header">
+            <div class="hook-dot" style="background:var(--yellow)"></div>
+            <h3>完整實戰腳本：自動格式化 + Lint</h3>
+          </div>
+          <div class="hook-body">
+            <p>每次 Claude 寫入檔案後自動執行格式化與 Lint，保持程式碼整潔。</p>
+            <div class="code-block" style="font-size:0.81rem">
+              <button class="copy-btn" onclick="copyCode(this)">複製</button>
+<span class="comment">#!/bin/bash  # scripts/post-write.sh</span><br/>
+INPUT=$(cat)<br/>
+FILE=$(echo "$INPUT" | python3 <span class="flag">-c</span> <br/>
+&nbsp;&nbsp;<span class="str">"import sys,json; d=json.load(sys.stdin); print(d.get('input',{}).get('file_path',''))"</span>)<br/><br/>
+<span class="cmd">if</span> [ -z "$FILE" ]; then <span class="cmd">exit</span> 0; <span class="cmd">fi</span><br/><br/>
+<span class="cmd">case</span> "$FILE" <span class="cmd">in</span><br/>
+&nbsp;&nbsp;*.ts|*.tsx|*.js|*.jsx)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;npx prettier <span class="flag">--write</span> "$FILE" 2>/dev/null<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;npx eslint <span class="flag">--fix</span> "$FILE" 2>/dev/null<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;;;<br/>
+&nbsp;&nbsp;*.py)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;python3 <span class="flag">-m</span> black "$FILE" 2>/dev/null<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;python3 <span class="flag">-m</span> ruff check <span class="flag">--fix</span> "$FILE" 2>/dev/null<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;;;<br/>
+<span class="cmd">esac</span><br/>
+<span class="cmd">exit</span> 0
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 學習路線圖 -->
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:2rem;margin-top:1rem">
+      <h3 style="font-size:1.1rem;font-weight:700;margin-bottom:1.2rem;text-align:center">🗺️ 建議學習路徑</h3>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:0.8rem;text-align:center">
+        <div style="background:rgba(0,212,170,0.1);border:1px solid rgba(0,212,170,0.3);border-radius:10px;padding:1rem">
+          <div style="color:var(--green);font-weight:700;margin-bottom:0.3rem">第 1 週</div>
+          <div style="font-size:0.83rem;color:var(--text-muted)">安裝 + 基礎指令<br/>CLAUDE.md 設定<br/>第一個真實任務</div>
+        </div>
+        <div style="background:rgba(79,195,247,0.1);border:1px solid rgba(79,195,247,0.3);border-radius:10px;padding:1rem">
+          <div style="color:var(--blue);font-weight:700;margin-bottom:0.3rem">第 2 週</div>
+          <div style="font-size:0.83rem;color:var(--text-muted)">Git 整合工作流<br/>自訂 Slash 指令<br/>Hooks 自動化</div>
+        </div>
+        <div style="background:rgba(255,215,0,0.1);border:1px solid rgba(255,215,0,0.3);border-radius:10px;padding:1rem">
+          <div style="color:var(--yellow);font-weight:700;margin-bottom:0.3rem">第 3 週</div>
+          <div style="font-size:0.83rem;color:var(--text-muted)">MCP 伺服器整合<br/>CI/CD 流水線<br/>權限管理設定</div>
+        </div>
+        <div style="background:rgba(108,71,255,0.1);border:1px solid rgba(108,71,255,0.3);border-radius:10px;padding:1rem">
+          <div style="color:#a78bff;font-weight:700;margin-bottom:0.3rem">第 4 週+</div>
+          <div style="font-size:0.83rem;color:var(--text-muted)">Agent SDK 開發<br/>多 Agent 架構<br/>自建 MCP 伺服器</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COWORK / REMOTE CONTROL -->
+<section id="cowork" style="background:var(--bg)">
+  <div class="container">
+    <div class="section-tag">跨裝置協作</div>
+    <h2 class="section-title">Cowork — 遠端控制與跨裝置工作流</h2>
+    <p class="section-sub">在手機、平板、任何瀏覽器繼續你的本機 Claude Code 工作階段，或從手機派發任務讓桌機執行。</p>
+
+    <!-- ── C1: Remote Control ── -->
+    <div style="margin-bottom:3.5rem">
+      <h3 style="font-size:1.25rem;font-weight:700;margin-bottom:0.4rem;display:flex;align-items:center;gap:0.6rem">
+        <span style="background:rgba(0,212,170,0.2);width:36px;height:36px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;font-size:1rem">📡</span>
+        C1 · Remote Control — 遠端接管本機工作階段
+      </h3>
+      <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:1.2rem">Claude Code 繼續在你的電腦本機執行，手機或遠端瀏覽器只是一個「視窗」。本機 MCP、檔案系統、工具設定全部保持可用。</p>
+
+      <div class="cheat-grid" style="grid-template-columns:repeat(auto-fit,minmax(340px,1fr))">
+        <div class="hook-card">
+          <div class="hook-header">
+            <div class="hook-dot" style="background:var(--green)"></div>
+            <h3>模式 1：Server 模式（支援多工作階段）</h3>
+          </div>
+          <div class="hook-body">
+            <p>啟動後終端機持續等待遠端連線，可同時服務多個客戶端。按空白鍵顯示 QR Code 供手機掃描。</p>
+            <div class="code-block">
+              <button class="copy-btn" onclick="copyCode(this)">複製</button>
+<span class="comment"># 基本 server 模式</span><br/>
+<span class="prompt">$ </span><span class="cmd">claude remote-control</span><br/><br/>
+<span class="comment"># 指定工作階段名稱</span><br/>
+<span class="prompt">$ </span><span class="cmd">claude remote-control</span> <span class="flag">--name</span> <span class="str">"My Project"</span><br/><br/>
+<span class="comment"># 每個連線各有獨立 worktree（避免衝突）</span><br/>
+<span class="prompt">$ </span><span class="cmd">claude remote-control</span> <span class="flag">--spawn</span> worktree<br/><br/>
+<span class="comment"># 限制最多 5 個並發工作階段</span><br/>
+<span class="prompt">$ </span><span class="cmd">claude remote-control</span> <span class="flag">--capacity</span> 5
+            </div>
+          </div>
+        </div>
+
+        <div class="hook-card">
+          <div class="hook-header">
+            <div class="hook-dot" style="background:var(--blue)"></div>
+            <h3>模式 2：互動模式（邊用邊遠端）</h3>
+          </div>
+          <div class="hook-body">
+            <p>正常啟動 Claude Code，同時開啟遠端連線。可在本機輸入指令，也可從手機操作，兩端訊息即時同步。</p>
+            <div class="code-block">
+              <button class="copy-btn" onclick="copyCode(this)">複製</button>
+<span class="comment"># 啟動時直接開啟遠端</span><br/>
+<span class="prompt">$ </span><span class="cmd">claude</span> <span class="flag">--remote-control</span> <span class="str">"My Project"</span><br/><br/>
+<span class="comment"># 已在工作階段中 → 輸入指令開啟</span><br/>
+<span class="cmd">/remote-control</span> My Project<br/><br/>
+<span class="comment"># 縮寫版</span><br/>
+<span class="cmd">/rc</span> My Project<br/><br/>
+<span class="comment"># 顯示 QR Code（server 模式下按空白鍵）</span><br/>
+<span class="comment"># 取得 App 下載 QR Code</span><br/>
+<span class="cmd">/mobile</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hook-card">
+          <div class="hook-header">
+            <div class="hook-dot" style="background:var(--yellow)"></div>
+            <h3>從其他裝置連線</h3>
+          </div>
+          <div class="hook-body">
+            <p>啟動後會顯示工作階段 URL，用任一方式從手機或其他電腦連線：</p>
+            <div class="code-block">
+              <button class="copy-btn" onclick="copyCode(this)">複製</button>
+<span class="comment"># 方法 1：直接開啟顯示的 URL</span><br/>
+https://claude.ai/code/sessions/xxx<br/><br/>
+<span class="comment"># 方法 2：掃描 QR Code（手機 Claude App）</span><br/>
+<span class="comment"># 按空白鍵顯示 QR Code，用 App 掃描</span><br/><br/>
+<span class="comment"># 方法 3：前往 claude.ai/code</span><br/>
+<span class="comment"># 工作階段清單中找到你的工作階段名稱</span><br/>
+<span class="comment"># （顯示電腦圖示 + 綠點表示在線）</span><br/><br/>
+<span class="comment"># 啟用全局遠端控制（每次啟動都自動開啟）</span><br/>
+<span class="cmd">/config</span>  <span class="comment">→ Enable Remote Control for all sessions</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hook-card">
+          <div class="hook-header">
+            <div class="hook-dot" style="background:var(--accent)"></div>
+            <h3>--spawn 模式說明</h3>
+          </div>
+          <div class="hook-body">
+            <table style="width:100%;font-size:0.83rem;border-collapse:collapse">
+              <tr style="color:var(--text-muted)">
+                <th style="text-align:left;padding:0.3rem 0;width:100px">模式</th>
+                <th style="text-align:left;padding:0.3rem 0">行為</th>
+              </tr>
+              <tr style="border-top:1px solid var(--border)">
+                <td style="padding:0.4rem 0"><code>same-dir</code></td>
+                <td style="color:var(--text-muted)">所有連線共用同一目錄（預設），可能產生衝突</td>
+              </tr>
+              <tr style="border-top:1px solid var(--border)">
+                <td style="padding:0.4rem 0"><code>worktree</code></td>
+                <td style="color:var(--text-muted)">每個連線獨立 git worktree，互不干擾（需 git repo）</td>
+              </tr>
+              <tr style="border-top:1px solid var(--border)">
+                <td style="padding:0.4rem 0"><code>session</code></td>
+                <td style="color:var(--text-muted)">單一工作階段模式，拒絕第二個連線</td>
+              </tr>
+            </table>
+            <div class="alert alert-info" style="margin-top:0.8rem">
+              <span class="alert-icon">💡</span>
+              在 server 模式執行中按 <code>w</code> 可即時切換 same-dir / worktree 模式。
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 安全與限制 -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.2rem;margin-top:1.2rem">
+        <div class="install-card">
+          <h3>🔒 安全機制</h3>
+          <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:0.8rem">Remote Control 採用純外連 HTTPS，不開放任何本機 inbound port，流量透過 Anthropic API 路由，使用短效憑證加密。</p>
+          <div class="code-block" style="font-size:0.82rem">
+<span class="comment"># 需求：</span><br/>
+<span class="comment"># - Pro / Max / Team / Enterprise 訂閱</span><br/>
+<span class="comment"># - claude.ai 帳號登入（非純 API Key）</span><br/>
+<span class="comment"># - Claude Code v2.1.51+</span><br/><br/>
+<span class="comment"># 確認版本</span><br/>
+<span class="prompt">$ </span><span class="cmd">claude</span> <span class="flag">--version</span><br/><br/>
+<span class="comment"># 確認登入狀態</span><br/>
+<span class="cmd">/status</span>
+          </div>
+        </div>
+        <div class="install-card">
+          <h3>📱 手機推播通知</h3>
+          <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:0.8rem">Remote Control 啟動時，Claude 可在長任務完成或需要決策時主動推播通知到你的手機。</p>
+          <div class="code-block" style="font-size:0.82rem">
+<span class="comment"># 設定步驟：</span><br/>
+<span class="comment"># 1. 安裝 Claude iOS / Android App</span><br/>
+<span class="comment"># 2. 用相同帳號登入</span><br/>
+<span class="comment"># 3. 允許系統通知權限</span><br/>
+<span class="comment"># 4. 在終端機執行：</span><br/>
+<span class="cmd">/config</span>  <span class="comment">→ Push when Claude decides → true</span><br/><br/>
+<span class="comment"># 在 prompt 中要求推播</span><br/>
+<span class="str">你: </span>執行完測試後推播通知我
+          </div>
+        </div>
+        <div class="install-card">
+          <h3>⚠️ 使用限制</h3>
+          <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:0.8rem">幾個需要注意的限制：</p>
+          <div class="code-block" style="font-size:0.82rem">
+<span class="comment"># ✗ 關閉終端機 = 工作階段結束</span><br/>
+<span class="comment"># ✗ 離線超過約 10 分鐘 → 自動斷線</span><br/>
+<span class="comment"># ✗ Ultraplan 啟動時會斷開遠端連線</span><br/>
+<span class="comment"># ✗ /mcp /plugin /resume 只能本機用</span><br/>
+<span class="comment"># ✓ /compact /clear /usage 可遠端使用</span><br/><br/>
+<span class="comment"># 重新連線只需重新執行：</span><br/>
+<span class="prompt">$ </span><span class="cmd">claude remote-control</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── C2: Dispatch ── -->
+    <div style="margin-bottom:3.5rem">
+      <h3 style="font-size:1.25rem;font-weight:700;margin-bottom:0.4rem;display:flex;align-items:center;gap:0.6rem">
+        <span style="background:rgba(108,71,255,0.2);width:36px;height:36px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;font-size:1rem">📲</span>
+        C2 · Dispatch — 手機一鍵派發桌機任務
+      </h3>
+      <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:1.2rem">不需要打開桌機，直接在手機 Claude App 發訊息，Dispatch 會在你的桌機 Desktop App 中建立工作階段並執行任務。</p>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.2rem">
+        <div class="install-card">
+          <h3>設定 Dispatch</h3>
+          <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:0.8rem">在手機 App 和桌機 Desktop App 之間建立配對：</p>
+          <div class="code-block" style="font-size:0.82rem">
+<span class="comment"># 1. 安裝 Claude Desktop App（Mac/Windows）</span><br/>
+<span class="comment"># 2. 安裝 Claude iOS / Android App</span><br/>
+<span class="comment"># 3. 兩端用相同帳號登入</span><br/>
+<span class="comment"># 4. 在 Desktop App 中啟用 Dispatch</span><br/>
+<span class="comment">#    Settings → Dispatch → Enable</span><br/><br/>
+<span class="comment"># 使用方式：</span><br/>
+<span class="comment"># 在手機 Claude App 中像發訊息一樣</span><br/>
+<span class="comment"># 傳送任務描述，Desktop 自動建立工作階段</span>
+          </div>
+        </div>
+        <div class="install-card">
+          <h3>Dispatch 使用場景</h3>
+          <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:0.8rem">當你不在電腦前，但想要讓電腦做事：</p>
+          <div class="code-block" style="font-size:0.82rem">
+<span class="comment"># 通勤途中發訊息：</span><br/>
+<span class="str">"幫我跑完所有測試，失敗的修好後 commit"</span><br/><br/>
+<span class="comment"># 回到家時已完成，Desktop 上可看到結果</span><br/><br/>
+<span class="comment"># 差異：</span><br/>
+<span class="comment"># Dispatch → 派發新任務到桌機 Desktop</span><br/>
+<span class="comment"># Remote Control → 接管已執行中的工作階段</span>
+          </div>
+        </div>
+        <div class="install-card">
+          <h3>Teleport — 工作階段傳送</h3>
+          <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:0.8rem">在 Web / 手機 App 開始的工作階段，傳送到本機終端機繼續執行：</p>
+          <div class="code-block" style="font-size:0.82rem">
+<span class="comment"># 把 claude.ai/code 工作階段拉到終端機</span><br/>
+<span class="prompt">$ </span><span class="cmd">claude</span> <span class="flag">--teleport</span><br/><br/>
+<span class="comment"># 或在工作階段中輸入</span><br/>
+<span class="cmd">/teleport</span><br/><br/>
+<span class="comment"># 把終端機工作階段傳送到 Desktop App</span><br/>
+<span class="cmd">/desktop</span><br/><br/>
+<span class="comment"># 適用情境：</span><br/>
+<span class="comment"># 在 Web 開始工作 → 拉到本機繼續</span><br/>
+<span class="comment"># 在終端機 → 傳到 Desktop 看視覺化 diff</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── C3: Channels ── -->
+    <div style="margin-bottom:2rem">
+      <h3 style="font-size:1.25rem;font-weight:700;margin-bottom:0.4rem;display:flex;align-items:center;gap:0.6rem">
+        <span style="background:rgba(79,195,247,0.2);width:36px;height:36px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;font-size:1rem">💬</span>
+        C3 · Channels — 外部訊息觸發工作階段
+      </h3>
+      <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:1.2rem">將 Telegram、Discord、iMessage 或自訂 Webhook 的訊息轉發到 Claude Code 工作階段，讓 Claude 自動反應外部事件。</p>
+
+      <div class="cheat-grid" style="grid-template-columns:repeat(auto-fit,minmax(340px,1fr))">
+        <div class="hook-card">
+          <div class="hook-header">
+            <div class="hook-dot" style="background:var(--green)"></div>
+            <h3>Telegram Bot 整合</h3>
+          </div>
+          <div class="hook-body">
+            <p>建立 Telegram Bot 後，用 plugin 讓 Claude 自動回應 Telegram 訊息。</p>
+            <div class="code-block">
+              <button class="copy-btn" onclick="copyCode(this)">複製</button>
+<span class="comment"># 安裝 Telegram channel plugin</span><br/>
+<span class="prompt">$ </span><span class="cmd">claude mcp add</span> <span class="flag">--transport stdio</span> telegram-channel -- \<br/>
+&nbsp;&nbsp;npx <span class="flag">-y</span> @claude-code/channel-telegram<br/><br/>
+<span class="comment"># 在 settings.json 設定 Bot Token</span><br/>
+<span class="str">"env"</span>: { <span class="str">"TELEGRAM_BOT_TOKEN"</span>: <span class="str">"xxx"</span> }<br/><br/>
+<span class="comment"># 啟動並等待訊息</span><br/>
+<span class="prompt">$ </span><span class="cmd">claude</span> <span class="str">"監聽 Telegram，收到訊息就分析並回覆"</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hook-card">
+          <div class="hook-header">
+            <div class="hook-dot" style="background:var(--blue)"></div>
+            <h3>Webhook 事件觸發</h3>
+          </div>
+          <div class="hook-body">
+            <p>接收 CI/CD 失敗、GitHub 事件、監控告警等 webhook，自動觸發 Claude 分析處理。</p>
+            <div class="code-block">
+              <button class="copy-btn" onclick="copyCode(this)">複製</button>
+<span class="comment"># 啟動等待 webhook 的 channel</span><br/>
+<span class="prompt">$ </span><span class="cmd">claude</span> <span class="flag">--channels</span> <span class="str">"收到 webhook 後自動分析並修復"</span><br/><br/>
+<span class="comment"># 典型使用場景：</span><br/>
+<span class="comment"># CI 失敗 → webhook → Claude 自動分析測試 log</span><br/>
+<span class="comment"># GitHub PR 開啟 → webhook → Claude 自動 review</span><br/>
+<span class="comment"># 監控告警 → webhook → Claude 自動診斷問題</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hook-card">
+          <div class="hook-header">
+            <div class="hook-dot" style="background:var(--yellow)"></div>
+            <h3>Slack 整合（雲端執行）</h3>
+          </div>
+          <div class="hook-body">
+            <p>在 Slack 頻道提及 <code>@Claude</code>，Claude 在 Anthropic 雲端執行任務後回覆結果（PR、分析報告等）。</p>
+            <div class="code-block">
+              <button class="copy-btn" onclick="copyCode(this)">複製</button>
+<span class="comment"># Slack 使用方式（安裝 Slack App 後）：</span><br/>
+<span class="str">@Claude</span> 這個 bug report 請開一個 PR 修復：<br/>
+<span class="str">[貼上 bug 描述]</span><br/><br/>
+<span class="comment"># Claude 會自動：</span><br/>
+<span class="comment"># 1. 分析 bug</span><br/>
+<span class="comment"># 2. 找到問題根因</span><br/>
+<span class="comment"># 3. 撰寫修復程式碼</span><br/>
+<span class="comment"># 4. 開 PR 並在 Slack 回覆連結</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 功能對比表 -->
+        <div class="hook-card">
+          <div class="hook-header">
+            <div class="hook-dot" style="background:var(--primary)"></div>
+            <h3>跨裝置方案選擇指南</h3>
+          </div>
+          <div class="hook-body">
+            <table style="width:100%;font-size:0.79rem;border-collapse:collapse">
+              <tr style="color:var(--text-muted)">
+                <th style="text-align:left;padding:0.3rem 0;width:90px">方案</th>
+                <th style="text-align:left;padding:0.3rem 0">Claude 執行位置</th>
+                <th style="text-align:left;padding:0.3rem 0">最適場景</th>
+              </tr>
+              <tr style="border-top:1px solid var(--border)">
+                <td style="padding:0.35rem 0;color:var(--green);font-weight:600">Remote Control</td>
+                <td style="color:var(--text-muted)">你的電腦</td>
+                <td style="color:var(--text-muted)">接管進行中任務</td>
+              </tr>
+              <tr style="border-top:1px solid var(--border)">
+                <td style="padding:0.35rem 0;color:var(--blue);font-weight:600">Dispatch</td>
+                <td style="color:var(--text-muted)">你的電腦</td>
+                <td style="color:var(--text-muted)">手機派發新任務</td>
+              </tr>
+              <tr style="border-top:1px solid var(--border)">
+                <td style="padding:0.35rem 0;color:var(--accent);font-weight:600">Channels</td>
+                <td style="color:var(--text-muted)">你的電腦</td>
+                <td style="color:var(--text-muted)">外部事件觸發</td>
+              </tr>
+              <tr style="border-top:1px solid var(--border)">
+                <td style="padding:0.35rem 0;color:var(--yellow);font-weight:600">Slack</td>
+                <td style="color:var(--text-muted)">Anthropic 雲端</td>
+                <td style="color:var(--text-muted)">團隊聊天室協作</td>
+              </tr>
+              <tr style="border-top:1px solid var(--border)">
+                <td style="padding:0.35rem 0;color:var(--text-muted);font-weight:600">Web</td>
+                <td style="color:var(--text-muted)">Anthropic 雲端</td>
+                <td style="color:var(--text-muted)">無需本機環境</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CUSTOM SUBAGENTS -->
+<section id="subagents" style="background:var(--bg2)">
+  <div class="container">
+    <div class="section-tag">智能代理</div>
+    <h2 class="section-title">自訂 Subagent — 打造可重用 AI 角色</h2>
+    <p class="section-sub">將程式碼審查員、安全稽核師、文件撰寫員等角色封裝成 Subagent，讓 Claude 在適當時機自動委派任務，保護主對話的 context 不被浪費。</p>
+
+    <!-- ── S1: 概念 ── -->
+    <div style="margin-bottom:3rem">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1.2rem">
+        <div class="install-card" style="border-color:rgba(0,212,170,0.3)">
+          <h3 style="color:var(--green)">Subagent 是什麼？</h3>
+          <p style="color:var(--text-muted);font-size:0.85rem">擁有獨立系統提示、工具集、權限設定的特化 AI 助手。主對話把任務委派給 subagent，subagent 在自己的 context 視窗內工作，只回傳結果摘要——不污染主對話的 token。</p>
+        </div>
+        <div class="install-card" style="border-color:rgba(108,71,255,0.3)">
+          <h3 style="color:#a78bff">何時使用？</h3>
+          <p style="color:var(--text-muted);font-size:0.85rem">某個側任務會把大量搜尋結果、Log 或檔案內容倒入主對話，但這些內容之後不會再被引用 → 交給 subagent 在獨立視窗處理，保留主對話 context。</p>
+        </div>
+        <div class="install-card" style="border-color:rgba(255,215,0,0.3)">
+          <h3 style="color:var(--yellow)">內建 Subagents</h3>
+          <p style="color:var(--text-muted);font-size:0.85rem"><strong>Explore</strong>（Haiku，唯讀）— 搜尋程式碼庫<br/><strong>Plan</strong>（繼承，唯讀）— Plan Mode 研究<br/><strong>general-purpose</strong>（繼承，全工具）— 複雜多步任務<br/>Claude 會自動在合適時機使用這些 agents。</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── S2: 建立方式 ── -->
+    <div style="margin-bottom:3rem">
+      <h3 style="font-size:1.25rem;font-weight:700;margin-bottom:0.4rem;display:flex;align-items:center;gap:0.6rem">
+        <span style="background:rgba(255,107,53,0.2);width:36px;height:36px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;font-size:1rem">✏️</span>
+        S1 · 建立自訂 Subagent
+      </h3>
+      <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:1.2rem">Subagent 是帶有 YAML frontmatter 的 Markdown 檔案，只需 <code>name</code> 和 <code>description</code> 是必填欄位。</p>
+
+      <div class="cheat-grid" style="grid-template-columns:repeat(auto-fit,minmax(340px,1fr))">
+        <div class="hook-card">
+          <div class="hook-header">
+            <div class="hook-dot" style="background:var(--green)"></div>
+            <h3>方法 1：互動式建立（推薦）</h3>
+          </div>
+          <div class="hook-body">
+            <p>用 <code>/agents</code> 指令開啟圖形介面，讓 Claude 幫你生成 agent 設定。</p>
+            <div class="code-block">
+              <button class="copy-btn" onclick="copyCode(this)">複製</button>
+<span class="comment"># 開啟 agent 管理介面</span><br/>
+<span class="cmd">/agents</span><br/><br/>
+<span class="comment"># Library → Create new agent → Personal（個人）</span><br/>
+<span class="comment"># → Generate with Claude → 描述你要的 agent：</span><br/>
+<span class="str">"一個程式碼審查員，掃描檔案並針對</span><br/>
+<span class="str">可讀性、效能、最佳實踐提出具體改善建議"</span><br/><br/>
+<span class="comment"># → 選擇工具（唯讀審查只需 Read-only tools）</span><br/>
+<span class="comment"># → 選擇模型（Sonnet 兼顧速度與能力）</span><br/>
+<span class="comment"># → 按 s 儲存</span><br/><br/>
+<span class="comment"># 列出所有已設定的 agents（非互動模式）</span><br/>
+<span class="prompt">$ </span><span class="cmd">claude agents</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hook-card">
+          <div class="hook-header">
+            <div class="hook-dot" style="background:var(--blue)"></div>
+            <h3>方法 2：手動撰寫 Markdown 檔案</h3>
+          </div>
+          <div class="hook-body">
+            <p>在 <code>.claude/agents/</code>（專案）或 <code>~/.claude/agents/</code>（個人）新增 <code>.md</code> 檔案。</p>
+            <div class="code-block">
+              <button class="copy-btn" onclick="copyCode(this)">複製</button>
+<span class="comment"># .claude/agents/code-reviewer.md</span><br/>
+---<br/>
+name: code-reviewer<br/>
+description: <span class="str">"審查程式碼品質、安全性與最佳實踐。</span><br/>
+&nbsp;&nbsp;<span class="str">程式碼有改動時主動使用。"</span><br/>
+tools: Read, Glob, Grep<br/>
+model: sonnet<br/>
+color: blue<br/>
+---<br/><br/>
+你是資深程式碼審查員。分析程式碼時找出：<br/>
+- 潛在 bug 與安全漏洞<br/>
+- 效能瓶頸<br/>
+- 可讀性與可維護性問題<br/><br/>
+每個問題標明嚴重程度：Critical / Warning / Suggestion。
+            </div>
+          </div>
+        </div>
+
+        <div class="hook-card">
+          <div class="hook-header">
+            <div class="hook-dot" style="background:var(--yellow)"></div>
+            <h3>方法 3：--agents CLI 旗標（臨時）</h3>
+          </div>
+          <div class="hook-body">
+            <p>僅限當前工作階段，不儲存到磁碟，適合快速測試或自動化腳本。</p>
+            <div class="code-block">
+              <button class="copy-btn" onclick="copyCode(this)">複製</button>
+<span class="prompt">$ </span><span class="cmd">claude</span> <span class="flag">--agents</span> <span class="str">'{</span><br/>
+&nbsp;&nbsp;<span class="str">"code-reviewer"</span>: {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"description"</span>: <span class="str">"Expert code reviewer. Use after code changes."</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"prompt"</span>: <span class="str">"You are a senior code reviewer..."</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"tools"</span>: [<span class="str">"Read"</span>, <span class="str">"Grep"</span>, <span class="str">"Glob"</span>],<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"model"</span>: <span class="str">"sonnet"</span><br/>
+&nbsp;&nbsp;},<br/>
+&nbsp;&nbsp;<span class="str">"debugger"</span>: {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"description"</span>: <span class="str">"Debug specialist for errors and test failures."</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"prompt"</span>: <span class="str">"You are an expert debugger..."</span><br/>
+&nbsp;&nbsp;}<br/>
+<span class="str">'</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hook-card">
+          <div class="hook-header">
+            <div class="hook-dot" style="background:var(--accent)"></div>
+            <h3>Frontmatter 完整欄位說明</h3>
+          </div>
+          <div class="hook-body">
+            <table style="width:100%;font-size:0.79rem;border-collapse:collapse">
+              <tr style="color:var(--text-muted)">
+                <th style="text-align:left;padding:0.3rem 0;width:120px">欄位</th>
+                <th style="text-align:left;padding:0.3rem 0">說明</th>
+              </tr>
+              <tr style="border-top:1px solid var(--border)">
+                <td style="padding:0.35rem 0"><code>name</code> *</td>
+                <td style="color:var(--text-muted)">唯一識別碼（小寫 + 連字號）</td>
+              </tr>
+              <tr style="border-top:1px solid var(--border)">
+                <td style="padding:0.35rem 0"><code>description</code> *</td>
+                <td style="color:var(--text-muted)">Claude 判斷何時委派的依據（寫清楚！）</td>
+              </tr>
+              <tr style="border-top:1px solid var(--border)">
+                <td style="padding:0.35rem 0"><code>tools</code></td>
+                <td style="color:var(--text-muted)">可用工具白名單（預設繼承全部）</td>
+              </tr>
+              <tr style="border-top:1px solid var(--border)">
+                <td style="padding:0.35rem 0"><code>disallowedTools</code></td>
+                <td style="color:var(--text-muted)">工具黑名單（從繼承中移除）</td>
+              </tr>
+              <tr style="border-top:1px solid var(--border)">
+                <td style="padding:0.35rem 0"><code>model</code></td>
+                <td style="color:var(--text-muted)"><code>sonnet</code> / <code>opus</code> / <code>haiku</code> / 完整 ID / <code>inherit</code></td>
+              </tr>
+              <tr style="border-top:1px solid var(--border)">
+                <td style="padding:0.35rem 0"><code>memory</code></td>
+                <td style="color:var(--text-muted)"><code>user</code> / <code>project</code> — 跨對話持久記憶</td>
+              </tr>
+              <tr style="border-top:1px solid var(--border)">
+                <td style="padding:0.35rem 0"><code>isolation</code></td>
+                <td style="color:var(--text-muted)"><code>worktree</code> — 獨立 git 副本執行</td>
+              </tr>
+              <tr style="border-top:1px solid var(--border)">
+                <td style="padding:0.35rem 0"><code>permissionMode</code></td>
+                <td style="color:var(--text-muted)"><code>acceptEdits</code> / <code>auto</code> / <code>dontAsk</code></td>
+              </tr>
+              <tr style="border-top:1px solid var(--border)">
+                <td style="padding:0.35rem 0"><code>maxTurns</code></td>
+                <td style="color:var(--text-muted)">最大執行輪數上限</td>
+              </tr>
+              <tr style="border-top:1px solid var(--border)">
+                <td style="padding:0.35rem 0"><code>color</code></td>
+                <td style="color:var(--text-muted)">UI 顯示顏色識別</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── S3: 實戰範例 ── -->
+    <div style="margin-bottom:2rem">
+      <h3 style="font-size:1.25rem;font-weight:700;margin-bottom:0.4rem;display:flex;align-items:center;gap:0.6rem">
+        <span style="background:rgba(0,212,170,0.2);width:36px;height:36px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;font-size:1rem">🔥</span>
+        S2 · 實戰 Subagent 範本庫
+      </h3>
+      <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:1.2rem">複製以下範本，放入 <code>.claude/agents/</code> 目錄即可使用。</p>
+
+      <div class="cheat-grid" style="grid-template-columns:repeat(auto-fit,minmax(340px,1fr))">
+        <div class="hook-card">
+          <div class="hook-header">
+            <div class="hook-dot" style="background:var(--red)"></div>
+            <h3>資安稽核師 (security-auditor.md)</h3>
+          </div>
+          <div class="hook-body">
+            <div class="code-block" style="font-size:0.81rem">
+              <button class="copy-btn" onclick="copyCode(this)">複製</button>
+---<br/>
+name: security-auditor<br/>
+description: <span class="str">"安全稽核 agent。掃描程式碼找出安全漏洞、</span><br/>
+&nbsp;&nbsp;<span class="str">敏感資料外洩、OWASP Top 10 問題。</span><br/>
+&nbsp;&nbsp;<span class="str">有安全性疑慮的 PR review 時自動使用。"</span><br/>
+tools: Read, Glob, Grep<br/>
+model: opus<br/>
+color: red<br/>
+---<br/><br/>
+你是一位資安稽核師。掃描程式碼時重點檢查：<br/>
+1. Hardcoded secrets / API keys<br/>
+2. SQL/Command injection 風險<br/>
+3. 不安全的依賴套件版本<br/>
+4. 驗證與授權邏輯漏洞<br/>
+5. 敏感資料記錄到 log<br/><br/>
+每個問題標明 CVSS 嚴重等級與修復建議。
+            </div>
+          </div>
+        </div>
+
+        <div class="hook-card">
+          <div class="hook-header">
+            <div class="hook-dot" style="background:var(--blue)"></div>
+            <h3>文件撰寫員 (doc-writer.md)</h3>
+          </div>
+          <div class="hook-body">
+            <div class="code-block" style="font-size:0.81rem">
+              <button class="copy-btn" onclick="copyCode(this)">複製</button>
+---<br/>
+name: doc-writer<br/>
+description: <span class="str">"文件撰寫 agent。根據程式碼自動生成</span><br/>
+&nbsp;&nbsp;<span class="str">README、API 文件、JSDoc / Python docstring。</span><br/>
+&nbsp;&nbsp;<span class="str">被要求產生文件時自動使用。"</span><br/>
+tools: Read, Glob, Grep, Write<br/>
+model: sonnet<br/>
+color: blue<br/>
+---<br/><br/>
+你是技術文件撰寫員。生成文件時：<br/>
+- README：概述、安裝、快速上手、API 參考<br/>
+- JSDoc：每個 public 函式加上參數、返回值說明<br/>
+- Python docstring：Google 格式<br/>
+輸出繁體中文，程式碼範例用英文。
+            </div>
+          </div>
+        </div>
+
+        <div class="hook-card">
+          <div class="hook-header">
+            <div class="hook-dot" style="background:var(--green)"></div>
+            <h3>效能分析師 (perf-analyst.md)</h3>
+          </div>
+          <div class="hook-body">
+            <div class="code-block" style="font-size:0.81rem">
+              <button class="copy-btn" onclick="copyCode(this)">複製</button>
+---<br/>
+name: perf-analyst<br/>
+description: <span class="str">"效能分析 agent。找出程式碼中的效能瓶頸、</span><br/>
+&nbsp;&nbsp;<span class="str">N+1 查詢問題、記憶體洩漏、不必要的重新渲染。</span><br/>
+&nbsp;&nbsp;<span class="str">效能相關問題時自動使用。"</span><br/>
+tools: Read, Glob, Grep, Bash<br/>
+model: sonnet<br/>
+color: yellow<br/>
+---<br/><br/>
+你是效能最佳化專家。分析程式碼時重點找：<br/>
+- 資料庫 N+1 查詢問題<br/>
+- 不必要的迴圈或重複計算<br/>
+- 大型物件的記憶體洩漏<br/>
+- React 不必要的重新渲染<br/>
+每個問題附上「改善前 / 改善後」程式碼對比。
+            </div>
+          </div>
+        </div>
+
+        <div class="hook-card">
+          <div class="hook-header">
+            <div class="hook-dot" style="background:var(--purple, #a78bff)"></div>
+            <h3>Worktree 隔離 Agent (isolated-fixer.md)</h3>
+          </div>
+          <div class="hook-body">
+            <p>在獨立 git worktree 中修復問題，避免污染當前工作目錄。</p>
+            <div class="code-block" style="font-size:0.81rem">
+              <button class="copy-btn" onclick="copyCode(this)">複製</button>
+---<br/>
+name: isolated-fixer<br/>
+description: <span class="str">"在獨立 worktree 中修復 bug，</span><br/>
+&nbsp;&nbsp;<span class="str">不影響當前工作分支。</span><br/>
+&nbsp;&nbsp;<span class="str">需要實驗性修復時使用。"</span><br/>
+tools: Read, Edit, Write, Bash, Glob, Grep<br/>
+model: sonnet<br/>
+isolation: worktree<br/>
+permissionMode: acceptEdits<br/>
+color: purple<br/>
+---<br/><br/>
+你在一個隔離的 worktree 中工作。<br/>
+修復完成後總結所做的變更，<br/>
+說明是否建議合併到主分支。
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 使用方式 -->
+      <div style="margin-top:1.5rem;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.5rem">
+        <h4 style="font-size:1rem;font-weight:700;margin-bottom:1rem">如何使用自訂 Subagent</h4>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem">
+          <div>
+            <div style="font-size:0.83rem;color:var(--text-muted);margin-bottom:0.5rem">1. 讓 Claude 自動委派（推薦）</div>
+            <div class="code-block" style="font-size:0.81rem">
+<span class="comment"># Claude 根據 description 自動判斷</span><br/>
+<span class="str">你: </span>幫我 review 這次的 PR 變更<br/>
+<span class="comment"># → Claude 自動委派給 code-reviewer agent</span>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:0.83rem;color:var(--text-muted);margin-bottom:0.5rem">2. 明確指定 Agent</div>
+            <div class="code-block" style="font-size:0.81rem">
+<span class="comment"># 用 @ 直接呼叫特定 agent</span><br/>
+<span class="str">你: </span>用 @security-auditor 掃描 src/auth.ts<br/><br/>
+<span class="comment"># 或啟動時設定主 agent</span><br/>
+<span class="prompt">$ </span><span class="cmd">claude</span> <span class="flag">--agent</span> security-auditor
+            </div>
+          </div>
+          <div>
+            <div style="font-size:0.83rem;color:var(--text-muted);margin-bottom:0.5rem">3. 查看 Agent 狀態</div>
+            <div class="code-block" style="font-size:0.81rem">
+<span class="comment"># 查看執行中的 agents</span><br/>
+<span class="cmd">/agents</span>  <span class="comment">→ Running 分頁</span><br/><br/>
+<span class="comment"># 重新載入 agent 設定</span><br/>
+<span class="cmd">/agents</span>  <span class="comment">→ 或重啟工作階段</span><br/><br/>
+<span class="comment"># 設定儲存於：</span><br/>
+<span class="comment"># 個人：~/.claude/agents/</span><br/>
+<span class="comment"># 專案：.claude/agents/（建議 commit）</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BORIS CHERNY 15 PRO TIPS -->
+<section id="pro-tips15" style="background:var(--bg)">
+  <div class="container">
+    <div class="section-tag">Boris Cherny 親授</div>
+    <h2 class="section-title">Claude Code 15 大專業技巧</h2>
+    <p class="section-sub">Claude Code 創作者 Boris Cherny 親自揭露的 15 個高頻實用技巧，快速突破使用瓶頸。</p>
+
+    <div class="tips-grid">
+      <div class="tip-card">
+        <div class="tip-num">1</div>
+        <div class="tip-content">
+          <h4>手機直接寫程式（Mobile Programming）</h4>
+          <p>在 iOS / Android 版 Claude App 的左側欄切換到 <strong>Code</strong> 分頁，可直接在手機上撰寫並執行程式碼，隨時隨地不間斷開發。</p>
+        </div>
+      </div>
+
+      <div class="tip-card">
+        <div class="tip-num">2</div>
+        <div class="tip-content">
+          <h4>跨裝置接力（Cross-Device Handoff）</h4>
+          <p>用 <code>claude --teleport</code> 或 REPL 中輸入 <code>/teleport</code> 將目前工作階段傳送到另一台裝置；輸入 <code>/remote-control</code> 可開啟遠端控制模式。</p>
+        </div>
+      </div>
+
+      <div class="tip-card">
+        <div class="tip-num">3</div>
+        <div class="tip-content">
+          <h4>排程執行（/loop 與 /schedule）</h4>
+          <p>用 <code>/loop 5m 任務描述</code> 讓 Claude 每 5 分鐘自動執行一次；用 <code>/schedule</code> 安排最多一週後才執行的延遲任務，打造自動化工作流。</p>
+        </div>
+      </div>
+
+      <div class="tip-card">
+        <div class="tip-num">4</div>
+        <div class="tip-content">
+          <h4>Hooks 掌控 Agent 生命週期</h4>
+          <p>在 <code>SessionStart</code>、<code>PreToolUse</code>、<code>PermissionRequest</code>、<code>Stop</code> 四個關鍵時機插入自訂邏輯，確定性地管控 Agent 行為，而非依賴 prompt。</p>
+        </div>
+      </div>
+
+      <div class="tip-card">
+        <div class="tip-num">5</div>
+        <div class="tip-content">
+          <h4>Cowork 遠端桌面派發</h4>
+          <p>透過 Claude 的安全介面從任何裝置遠端操控桌面電腦，管理 MCP 伺服器、瀏覽器與本機應用程式，實現跨裝置任務派發。</p>
+        </div>
+      </div>
+
+      <div class="tip-card">
+        <div class="tip-num">6</div>
+        <div class="tip-content">
+          <h4>Chrome 擴充功能驗證前端</h4>
+          <p>安裝 Claude Code Chrome Extension，讓 Claude 直接看到瀏覽器渲染結果，無需手動截圖即可迭代 UI 修改，大幅加速前端開發回饋循環。</p>
+        </div>
+      </div>
+
+      <div class="tip-card">
+        <div class="tip-num">7</div>
+        <div class="tip-content">
+          <h4>自動啟動並測試 Web Server</h4>
+          <p>Claude Desktop 內建瀏覽器，會自動偵測並啟動你的 Web Server，直接在內建瀏覽器中測試，無需手動操作，開發效率大增。</p>
+        </div>
+      </div>
+
+      <div class="tip-card">
+        <div class="tip-num">8</div>
+        <div class="tip-content">
+          <h4>工作階段分支（Session Forking）</h4>
+          <p>用 <code>/branch</code> 或 <code>claude --resume &lt;id&gt; --fork-session</code> 從同一個任務分叉出不同方向，同時探索多種解法，找到最佳方案後再合併。</p>
+        </div>
+      </div>
+
+      <div class="tip-card">
+        <div class="tip-num">9</div>
+        <div class="tip-content">
+          <h4>中途插問（/btw）</h4>
+          <p>在 Agent 執行長任務時，輸入 <code>/btw 你的問題</code> 可插入快問快答，不打斷 Agent 的主線工作。例如：<code>/btw 這邊用 async/await 還是 Promise 比較好？</code></p>
+        </div>
+      </div>
+
+      <div class="tip-card">
+        <div class="tip-num">10</div>
+        <div class="tip-content">
+          <h4>Git Worktrees 平行實例</h4>
+          <p>用 <code>git worktree add ../feature-branch</code> 建立獨立工作目錄，同時跑數十個 Claude 實例，每個都在獨立目錄作業，互不干擾，極大化平行開發效率。</p>
+        </div>
+      </div>
+
+      <div class="tip-card">
+        <div class="tip-num">11</div>
+        <div class="tip-content">
+          <h4>大規模平行遷移（/batch）</h4>
+          <p>用 <code>/batch</code> 將大型程式碼庫遷移任務分散到數百個 worktree Agent 同時執行，大規模並行修改讓原本需要幾天的重構在數小時內完成。</p>
+        </div>
+      </div>
+
+      <div class="tip-card">
+        <div class="tip-num">12</div>
+        <div class="tip-content">
+          <h4>--bare 快速啟動（跳過自動載入）</h4>
+          <p>加上 <code>--bare</code> 旗標跳過 CLAUDE.md 與上下文自動載入，啟動速度可提升最多 10 倍，非常適合非互動式自動化腳本與 CI/CD 環境。</p>
+        </div>
+      </div>
+
+      <div class="tip-card">
+        <div class="tip-num">13</div>
+        <div class="tip-content">
+          <h4>跨 Repo 存取（--add-dir）</h4>
+          <p>啟動時加上 <code>claude --add-dir ../other-repo</code> 即可在單一工作階段內存取並修改多個 Git 倉庫，完美支援 monorepo 或前後端分離專案。</p>
+        </div>
+      </div>
+
+      <div class="tip-card">
+        <div class="tip-num">14</div>
+        <div class="tip-content">
+          <h4>自訂 Agent 角色（--agent）</h4>
+          <p>在 <code>.claude/agents/</code> 目錄放置 Markdown 檔案定義可重用角色（程式碼審查員、資安稽核師）：設定專屬系統提示與工具組，用 <code>claude --agent reviewer</code> 一鍵切換。</p>
+        </div>
+      </div>
+
+      <div class="tip-card">
+        <div class="tip-num">15</div>
+        <div class="tip-content">
+          <h4>語音輸入寫程式（/voice）</h4>
+          <p>在 REPL 輸入 <code>/voice</code> 或在 Desktop / iOS 設定中開啟語音模式，用說話方式下指令，解放雙手、提升輸入速度，讓思路更流暢地轉化為程式碼。</p>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:2rem;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.2rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
+      <span style="font-size:1.5rem">📰</span>
+      <div>
+        <div style="font-weight:600;font-size:0.9rem">原文來源</div>
+        <div style="font-size:0.83rem;color:var(--text-muted)">Boris Cherny（Claude Code 創作者）親授 15 大技巧</div>
+      </div>
+      <a href="https://www.bnext.com.tw/article/90524/claude-code-boris-cherny-15-pro-tips-auto-dev-workflow" target="_blank" style="margin-left:auto;background:var(--primary);color:#fff;padding:0.45rem 1rem;border-radius:8px;font-size:0.83rem;font-weight:600;text-decoration:none;white-space:nowrap">閱讀原文 →</a>
+    </div>
+  </div>
+</section>
+
+<!-- RESOURCES -->
+<section id="resources" style="background:var(--bg2)">
+  <div class="container">
+    <div class="section-tag">學習資源</div>
+    <h2 class="section-title">延伸學習資源</h2>
+    <p class="section-sub">官方文件、影片教學、社群資源，幫助你持續深化 Claude Code 技能。</p>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.5rem">
+
+      <a href="https://www.youtube.com/watch?v=_MFwsufApcA" target="_blank" style="text-decoration:none;color:inherit">
+        <div class="install-card" style="cursor:pointer;transition:border-color 0.2s" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor=''">
+          <div style="display:flex;align-items:center;gap:0.7rem;margin-bottom:0.8rem">
+            <div style="background:rgba(255,0,0,0.15);width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0">▶</div>
+            <div>
+              <div style="font-weight:700;font-size:0.95rem">影片教學</div>
+              <div style="font-size:0.78rem;color:var(--text-muted)">YouTube · 中文講解</div>
+            </div>
+          </div>
+          <p style="color:var(--text-muted);font-size:0.85rem;line-height:1.6">15 條高頻實用的 Claude Code 技巧，帶你快速掌握 Claude Code 核心用法，適合想用實例學習的開發者。</p>
+          <div style="margin-top:0.8rem;font-size:0.8rem;color:var(--primary);font-weight:600">立即觀看 →</div>
+        </div>
+      </a>
+
+      <a href="https://www.bnext.com.tw/article/90524/claude-code-boris-cherny-15-pro-tips-auto-dev-workflow" target="_blank" style="text-decoration:none;color:inherit">
+        <div class="install-card" style="cursor:pointer;transition:border-color 0.2s" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor=''">
+          <div style="display:flex;align-items:center;gap:0.7rem;margin-bottom:0.8rem">
+            <div style="background:rgba(108,71,255,0.15);width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0">📰</div>
+            <div>
+              <div style="font-weight:700;font-size:0.95rem">文章：Boris Cherny 15 大技巧</div>
+              <div style="font-size:0.78rem;color:var(--text-muted)">數位時代 bnext.com.tw</div>
+            </div>
+          </div>
+          <p style="color:var(--text-muted);font-size:0.85rem;line-height:1.6">Claude Code 創作者 Boris Cherny 親授的 15 個高頻技巧，涵蓋行動裝置開發、跨裝置接力、自動化排程等進階用法。</p>
+          <div style="margin-top:0.8rem;font-size:0.8rem;color:var(--primary);font-weight:600">閱讀原文 →</div>
+        </div>
+      </a>
+
+      <a href="https://docs.anthropic.com/claude/docs/claude-code" target="_blank" style="text-decoration:none;color:inherit">
+        <div class="install-card" style="cursor:pointer;transition:border-color 0.2s" onmouseover="this.style.borderColor='var(--green)'" onmouseout="this.style.borderColor=''">
+          <div style="display:flex;align-items:center;gap:0.7rem;margin-bottom:0.8rem">
+            <div style="background:rgba(0,212,170,0.15);width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0">📖</div>
+            <div>
+              <div style="font-weight:700;font-size:0.95rem">官方文件</div>
+              <div style="font-size:0.78rem;color:var(--text-muted)">docs.anthropic.com</div>
+            </div>
+          </div>
+          <p style="color:var(--text-muted);font-size:0.85rem;line-height:1.6">Anthropic 官方 Claude Code 完整說明文件，包含所有指令、設定選項、API 參考與最新功能更新。</p>
+          <div style="margin-top:0.8rem;font-size:0.8rem;color:var(--green);font-weight:600">查閱文件 →</div>
+        </div>
+      </a>
+
+      <a href="https://github.com/anthropics/claude-code" target="_blank" style="text-decoration:none;color:inherit">
+        <div class="install-card" style="cursor:pointer;transition:border-color 0.2s" onmouseover="this.style.borderColor='var(--yellow)'" onmouseout="this.style.borderColor=''">
+          <div style="display:flex;align-items:center;gap:0.7rem;margin-bottom:0.8rem">
+            <div style="background:rgba(255,215,0,0.15);width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0">⭐</div>
+            <div>
+              <div style="font-weight:700;font-size:0.95rem">GitHub 原始碼</div>
+              <div style="font-size:0.78rem;color:var(--text-muted)">github.com/anthropics/claude-code</div>
+            </div>
+          </div>
+          <p style="color:var(--text-muted);font-size:0.85rem;line-height:1.6">Claude Code 官方 GitHub 倉庫，可追蹤 Issue、查看 Release Notes、提交 Bug 報告與功能建議。</p>
+          <div style="margin-top:0.8rem;font-size:0.8rem;color:var(--yellow);font-weight:600">前往 GitHub →</div>
+        </div>
+      </a>
+
+      <a href="https://console.anthropic.com" target="_blank" style="text-decoration:none;color:inherit">
+        <div class="install-card" style="cursor:pointer;transition:border-color 0.2s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor=''">
+          <div style="display:flex;align-items:center;gap:0.7rem;margin-bottom:0.8rem">
+            <div style="background:rgba(255,107,53,0.15);width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0">🔑</div>
+            <div>
+              <div style="font-weight:700;font-size:0.95rem">Anthropic Console</div>
+              <div style="font-size:0.78rem;color:var(--text-muted)">console.anthropic.com</div>
+            </div>
+          </div>
+          <p style="color:var(--text-muted);font-size:0.85rem;line-height:1.6">管理 API Key、查看用量與費用、存取 Workbench 測試提示詞，以及設定帳單與使用限額。</p>
+          <div style="margin-top:0.8rem;font-size:0.8rem;color:var(--accent);font-weight:600">前往 Console →</div>
+        </div>
+      </a>
+
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p style="font-size:1.4rem;margin-bottom:0.5rem">⚡</p>
+  <p style="font-weight:700;margin-bottom:0.5rem">Claude Code 快速學習指南</p>
+  <p>適用版本：Claude Code 2026 · 模型：Claude 4.x</p>
+  <p style="margin-top:1rem">
+    <a href="https://docs.anthropic.com/claude/docs/claude-code" target="_blank">官方文件</a>
+    &nbsp;·&nbsp;
+    <a href="https://github.com/anthropics/claude-code" target="_blank">GitHub</a>
+    &nbsp;·&nbsp;
+    <a href="https://console.anthropic.com" target="_blank">API Console</a>
+  </p>
+</footer>
+
+<script>
+  // Progress bar
+  window.addEventListener('scroll', () => {
+    const doc = document.documentElement;
+    const pct = (doc.scrollTop / (doc.scrollHeight - doc.clientHeight)) * 100;
+    document.getElementById('progress').style.width = pct + '%';
+  });
+
+  // Copy button
+  function copyCode(btn) {
+    const block = btn.parentElement;
+    const text = block.innerText.replace('複製', '').replace(/^\$ /gm, '').trim();
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = '已複製!';
+      btn.style.background = 'var(--green)';
+      btn.style.color = '#000';
+      setTimeout(() => {
+        btn.textContent = '複製';
+        btn.style.background = '';
+        btn.style.color = '';
+      }, 2000);
+    });
+  }
+
+  // Smooth active nav highlight
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.nav-links a');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        navLinks.forEach(a => a.style.color = '');
+        const active = document.querySelector(`.nav-links a[href="#${e.target.id}"]`);
+        if (active) active.style.color = 'var(--text)';
+      }
+    });
+  }, { threshold: 0.3 });
+  sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>
